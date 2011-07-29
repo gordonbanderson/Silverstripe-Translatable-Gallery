@@ -6,11 +6,7 @@ class ImageFile extends File {
 	);
 
 
-	/**
-	 * Allows you to returns a new data object to the tree (subclass of sitetree)
-	 * and updates the tree via javascript.
-	 */
-	public function returnItemToUser($p) {
+public function returnItemToUser($p) {
 		if(Director::is_ajax()) {
 			// Prepare the object for insertion.
 			$parentID = (int) $p->ParentID;
@@ -39,45 +35,71 @@ JS;
 	}
 
 
-
 	
 	public function onBeforeWrite() {
 		parent::onBeforeWrite();
-		
-		error_log("OBW: Image file");
-		error_log(print_r($this,1));
 
 		// create a photograph using these details
-
 		if ($this->GalleryID) {
-			error_log("Creating photograph");
-
 			$photo = new Photograph();
-			$photo->Title = $this->Title;
+
+			// the gallery has not yet been saved, so use the POST parameters after sanitising them
+			$bulkTitleRaw = $_POST['BulkTitle'];
+			$bulkCaptionRaw = $_POST['BulkCaption'];
+			$bulkCopyrightRaw = $_POST['BulkCopyright'];
+			$bulkLicenseRaw = $_POST['BulkLicense'];
+
+			//default to the photo title if no bulk title provided.  Items with no title get annoying to edit...
+			if(!$bulkTitleRaw) {
+				$photo->Title = $this->Title;
+	
+			} else {
+				$bulkTitle = Convert::raw2sql($bulkTitleRaw);
+				$photo->Title = $bulkTitle;
+			};
+
+			// set the bulk caption if one available
+			if ($bulkCaptionRaw) {
+				$photo->Caption = Convert::raw2sql($bulkCaptionRaw);
+			}
+
+			// set the bulk license if one available
+			if ($bulkLicenseRaw) {
+				$photo->License = Convert::raw2sql($bulkLicenseRaw);
+			}
+
+			// set a bulk caption if one available
+			if ($bulkCopyrightRaw) {
+				$photo->Copyright = Convert::raw2sql($bulkCopyrightRaw);
+			}
+
+
+			//Both the parent ID and the correct locale must be set, otherwise things get very messed up
 			$photo->ParentID = $this->GalleryID;
 
-			error_log("About to save photo");
+			//set the locale
+			$photo->Locale = Translatable::get_current_locale();
 
 			$image = new Image();
 			$image->Name = $this->Title;
 			$image->Title = $this->Title;
 			$image->Filename = $this->Filename;
 			$image->write();
-
 			$photo->PhotoID = $image->ID;
+
+			// this publishes to staging, not live, which is what we want
 			$photo->write();
 
-
-
-			$photo->write();
-			error_log("Saved photo");
+						$this->returnItemToUser($photo);
 
 
 
-			$this->returnItemToUser($photo);
+
+
 		}
 		
 	}
  
 }
 ?>
+
