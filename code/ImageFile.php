@@ -28,6 +28,7 @@ class ImageFile extends File {
 				}
 				node.open();
 				node.appendTreeNode(newNode);
+				newNode.selectTreeNode();
 JS;
 			FormResponse::add($response);
 
@@ -74,44 +75,6 @@ JS;
 
 
 			$this->returnItemToUser($photo);
-
-
-
-
-			//$this->delete();
-/*
-
-public function returnItemToUser($p) {
-		if(Director::is_ajax()) {
-			// Prepare the object for insertion.
-			$parentID = (int) $p->ParentID;
-			$id = $p->ID ? $p->ID : "new-$p->class-$p->ParentID";
-			$treeTitle = Convert::raw2js($p->TreeTitle());
-			$hasChildren = (is_numeric($id) && $p->AllChildren() && $p->AllChildren()->Count()) ? ' unexpanded' : '';
-
-
-*/
-
-
-		// now we delete the bulk uploaded image objects - note the files themselves are not deleted
-		//$imageFiles = DataObject::get('ImageFile', 'GalleryID='.$this->GalleryID);
-		/*
-		foreach($imageFiles as $imageFile) {
-			$imageFile->destroy();
-		}
-*/
-
-
-		/*
-		mysql> select * from File where ID=91;
-+----+-----------+---------------------+---------------------+---------+-------+------------------------+---------+------+-----------+----------+---------+
-| ID | ClassName | Created             | LastEdited          | Name    | Title | Filename               | Content | Sort | SortOrder | ParentID | OwnerID |
-+----+-----------+---------------------+---------------------+---------+-------+------------------------+---------+------+-----------+----------+---------+
-| 91 | Image     | 2011-05-05 10:36:52 | 2011-05-05 10:36:52 | cb2.png | cb2   | assets/Uploads/cb2.png | NULL    |    0 |        68 |        3 |       0 |
-+----+-----------+---------------------+---------------------+---------+-------+------------------------+---------+------+-----------+----------+---------+
-1 row in set (0.00 sec)
-
-*/
 		}
 		
 	}
