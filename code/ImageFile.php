@@ -6,6 +6,39 @@ class ImageFile extends File {
 	);
 
 
+	/**
+	 * Allows you to returns a new data object to the tree (subclass of sitetree)
+	 * and updates the tree via javascript.
+	 */
+	public function returnItemToUser($p) {
+		if(Director::is_ajax()) {
+			// Prepare the object for insertion.
+			$parentID = (int) $p->ParentID;
+			$id = $p->ID ? $p->ID : "new-$p->class-$p->ParentID";
+			$treeTitle = Convert::raw2js($p->TreeTitle());
+			$hasChildren = (is_numeric($id) && $p->AllChildren() && $p->AllChildren()->Count()) ? ' unexpanded' : '';
+
+			// Ensure there is definitly a node avaliable. if not, append to the home tree.
+			$response = <<<JS
+				var tree = $('sitetree');
+				var newNode = tree.createTreeNode("$id", "$treeTitle", "{$p->class}{$hasChildren}");
+				node = tree.getTreeNodeByIdx($parentID);
+				if(!node) {
+					node = tree.getTreeNodeByIdx(0);
+				}
+				node.open();
+				node.appendTreeNode(newNode);
+JS;
+			FormResponse::add($response);
+
+			return FormResponse::respond();
+		} else {
+			Director::redirect('admin/' . self::$url_segment . '/show/' . $p->ID);
+		}
+	}
+
+
+
 	
 	public function onBeforeWrite() {
 		parent::onBeforeWrite();
@@ -38,8 +71,26 @@ class ImageFile extends File {
 			$photo->write();
 			error_log("Saved photo");
 
-			//$this->delete();
 
+
+			$this->returnItemToUser($photo);
+
+
+
+
+			//$this->delete();
+/*
+
+public function returnItemToUser($p) {
+		if(Director::is_ajax()) {
+			// Prepare the object for insertion.
+			$parentID = (int) $p->ParentID;
+			$id = $p->ID ? $p->ID : "new-$p->class-$p->ParentID";
+			$treeTitle = Convert::raw2js($p->TreeTitle());
+			$hasChildren = (is_numeric($id) && $p->AllChildren() && $p->AllChildren()->Count()) ? ' unexpanded' : '';
+
+
+*/
 
 
 		// now we delete the bulk uploaded image objects - note the files themselves are not deleted
