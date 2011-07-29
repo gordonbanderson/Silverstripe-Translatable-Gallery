@@ -19,7 +19,7 @@ class Gallery extends Page {
 
 
   function onAfterWrite() {
-        parent::onAfterWrite();
+    parent::onAfterWrite();
 
     error_log("Gallery on after write");
 
