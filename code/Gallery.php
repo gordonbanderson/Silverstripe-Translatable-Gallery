@@ -50,6 +50,35 @@ class Gallery extends Page {
     $fields->addFieldToTab('Root.Content.BulkUpload', new TextField('BulkCaption', 'Bulk Caption'));
     $fields->addFieldToTab('Root.Content.BulkUpload', new TextField('BulkCopyright', 'Bulk Copyright'));
     $fields->addFieldToTab('Root.Content.BulkUpload', new TextField('BulkLicense', 'Bulk License'));
+
+    $manager = new PhotographDataObjectManager(
+      $this, // Controller
+      'AllChildren', // Source name
+      'Photograph', // Source class
+      'Photo', // File name on DataObject
+      array(
+                'Title' => 'Title', 
+                'Caption' => 'Caption'
+            ), 
+      'getCMSFields_forPopup' // Detail fields (function name or FieldSet object)
+      // Filter clause
+      // Sort clause
+      // Join clause
+    );
+
+    $fields->addFieldToTab("Root.Content.AllImages",$manager); 
+
+
+
+    /*
+    new ImageDataObjectManager( 
+$this, 
+'SomeObjects', 
+'SomeObject', 
+'SomeFile', 
+array('Foo' => 'Foo', 'Bar' => 'Bar') 
+);
+*/
     return $fields;
   }
 

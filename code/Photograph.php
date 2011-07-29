@@ -28,7 +28,12 @@ class Photograph extends Page {
       
         
   
- 
+ public function getCMSFields_forPopup()
+  {
+    return new FieldSet(
+      new TextField('Caption')
+    );
+  }
 
   function getCMSFields() {
     $fields = parent::getCMSFields();
