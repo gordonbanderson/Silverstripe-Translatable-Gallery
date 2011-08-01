@@ -58,8 +58,9 @@
 					</li>
 				<% end_if %>
 				<% if Items %>
-				<% control Items %>
+				<% control Photographs %>
 					<li id="record-$Parent.id-$ID" style="width:{$ImageSize}px; height:{$ImageSize}px;">
+						$ClassName
 								<div class="pad">
 									<% if Top.ShowAll %><span class="handle"><img src="dataobject_manager/images/move_icon.jpg" /></span><% end_if %>
 									<div class="file-icon"><a href="<% if CanViewOrEdit %>$EditLink<% else %>#<% end_if %>" rel="$PopupWidth" class="popup-button editlink tooltip"><img class="image" src="$FileIcon" alt="" style="width:{$ImageSize}px;" /></a></div>

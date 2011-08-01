@@ -28,7 +28,45 @@ class PhotographDataObjectManager extends FileDataObjectManager
 				$this->imageSize = $_REQUEST['ctf'][$this->Name()]['imagesize'];
 		}
 		$this->setAllowedFileTypes($this->limitFileTypes);
+		$this->GalleryID=$controller->ID;
+		error_log("GALLERY ID IN PDOM:".$this->GalleryID);
 	}
+
+
+	function Photographs() {
+
+		$items = $this->Items();
+
+		error_log("ITEMS CLASS:".$items);
+
+		$photoArray =  array();
+
+		foreach ($items as $key => $item) {
+
+			error_log("ITEM: ".$item);
+			error_log($item->ID);
+
+			$photoArray[$item->ID] = $photoArray;
+			# code...
+		}
+		//var_dump($items);
+		//$mySet->sort('Lastname'); 
+		$gallery = DataObject::get('Gallery', $this->GalleryID);
+		error_log("DATA GALLERY:".$gallery);
+
+		/*
+		$photoPages = $gallery->AllChildren();
+		foreach ($photoPages as $key => $photoPage) {
+			$photoID = $photoPage->PhotoID;
+			$sortOrder = $photoPage->SortOrder;
+			error_log("PHOTO ID:".$photoID." -> SORT: ".$sortOrder);
+		}
+
+		$items->sort('SortOrder');
+		*/
+		return $items;
+	}
+
 
 	function handleItem($request) {
 		return new PhotographDataObjectManager_ItemRequest($this, $request->param('ID'));
@@ -81,6 +119,13 @@ class PhotographDataObjectManager_Item extends FileDataObjectManager_Item
 
 }
 
+
+class PhotographDataObjectController extends FileDataObjectManager_Controller {
+	function Photographs() {
+		return DataObject.get('Photograph');
+	}
+}
+
 class PhotographDataObjectManager_Popup extends FileDataObjectManager_Popup
 {
 	function __construct($controller, $name, $fields, $validator, $readonly, $dataObject) 
@@ -90,6 +135,8 @@ class PhotographDataObjectManager_Popup extends FileDataObjectManager_Popup
 	}
 
 }
+
+
 
 class PhotographDataObjectManager_ItemRequest extends DataObjectManager_ItemRequest 
 {
