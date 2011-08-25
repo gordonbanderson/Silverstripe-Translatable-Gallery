@@ -47,7 +47,7 @@ JQ(document).ready(function(){
     		theme: 'facebook',
     		showTitle: true,
     		opacity: 0.9,
-    		custom_markup: 'wibble'
+    		social_tools: ''
     	}
 	);
     console.log("/trying to bind pretty photo");
