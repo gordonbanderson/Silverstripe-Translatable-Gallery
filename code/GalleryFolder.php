@@ -30,7 +30,9 @@ class GalleryFolder extends Page {
 }
  
 class GalleryFolder_Controller extends Page_Controller {
- 
+   public function ColumnLayout() {
+      return 'layout1col';
+    }
 }
  
 ?>
