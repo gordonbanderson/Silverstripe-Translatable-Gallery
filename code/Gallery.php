@@ -143,6 +143,10 @@ class Gallery_Controller extends Page_Controller {
     // included so that our older themes still work
     Requirements::themedCSS('gallery.css');
   }
+
+    public function ColumnLayout() {
+      return 'layout1col';
+    }
 }
 
 ?>
