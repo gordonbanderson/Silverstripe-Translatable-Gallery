@@ -1,5 +1,5 @@
 <?
-class ImageFile extends File {
+class ImageFile extends Image {
  
 	static $has_one = array (
 		'Gallery' => 'Gallery'
@@ -24,7 +24,7 @@ public function returnItemToUser($p) {
 				}
 				node.open();
 				node.appendTreeNode(newNode);
-				newNode.selectTreeNode();
+				//newNode.selectTreeNode();
 JS;
 			FormResponse::add($response);
 
@@ -39,8 +39,13 @@ JS;
 	public function onBeforeWrite() {
 		parent::onBeforeWrite();
 
+		error_log("IF: Image file on before write");
+
 		// create a photograph using these details
 		if ($this->GalleryID) {
+			//FIXME - still need to sort by filename
+			
+			error_log("IF: T2");
 			$photo = new Photograph();
 
 			// the gallery has not yet been saved, so use the POST parameters after sanitising them
@@ -90,11 +95,14 @@ JS;
 			// this publishes to staging, not live, which is what we want
 			$photo->write();
 
-						$this->returnItemToUser($photo);
+			$this->returnItemToUser($photo);
 
 
 
 
+
+		} else {
+			error_log("IF: T3");
 
 		}
 		
