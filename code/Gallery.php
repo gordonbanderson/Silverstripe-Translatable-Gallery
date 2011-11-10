@@ -41,7 +41,10 @@ class Gallery extends Page {
  
   public function getCMSFields() {
     $fields = parent::getCMSFields();
-    $fields->addFieldToTab("Root.Content.BulkUpload", new MultipleFileUploadField('AttachedFiles','Upload several images at once'));
+    $mfuf = new MultipleFileUploadField('AttachedFiles','Upload several images at once');
+    $mfuf->image_class =  'ImageFile';
+    $mfuf->setUploadFolder('galleries/'.$this->URLSegment);
+    $fields->addFieldToTab("Root.Content.BulkUpload", $mfuf);
 
     $fields->addFieldToTab('Root.Content.BulkUpload', new LiteralField('Bulk Note', 
     '<p>If you wish to set the same details for all of the uploaded images please do so here</p>'));
@@ -102,11 +105,24 @@ array('Foo' => 'Foo', 'Bar' => 'Bar')
 
     // cehck for image files, as the on after write method is called more than once
     // If we delete too soon, the bulk uploaded ImageFile objects wont get attached to photographs
-    $imageFiles = DataObject::get('ImageFile', 'GalleryID='.$this->ID);
+    $imageFiles = DataObject::get('ImageFile', 'GalleryID='.$this->ID, 'Filename');
+
+
+
+//$records = DataObject::get($obj, $filter, $sort, $join, $limit);
+
+    error_log("Gallery: Deleting image files ".$imageFiles);
     
     if ($imageFiles) {
+      error_log("IMAGE FILES FOUND");
       // we cannot use $imageFile->delete as this deletes the record in the File table
       // instead delete the ImageFile records using raw sql
+
+      // find the existing max sort order
+      
+
+
+      DB::query("DELETE from File where ClassName = 'ImageFile' and ID in (select ID from ImageFile where GalleryID=".$this->ID.")");
       DB::query("DELETE from ImageFile where GalleryID=".$this->ID);
 
     }
