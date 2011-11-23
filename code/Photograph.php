@@ -95,15 +95,22 @@ JS;
   }
 
 
+  function getRequirementsForPopup() {
+    Requirements::javascript('silverstripe-links/javascript/photograph_popup.js');
+  }
+
+
 
   public function onBeforeWrite() {
 
     parent::onBeforeWrite();
 
     // give data object photo sorter priority here
+  /*
     if ($this->Owner->Sort != $this->Owner->SortOrder) {
        $this->Owner->Sort = $this->Owner->SortOrder;
     }
+*/
 
     if (!isset($_POST['ToDo'])) {
       // we came from the popup
