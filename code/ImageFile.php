@@ -46,7 +46,12 @@ JS;
 			//FIXME - still need to sort by filename
 			
 			error_log("IF: T2");
+
+			error_log("IMAGE FILE:(".$this->SortOrder.') '.$this->Title);
+
+
 			$photo = new Photograph();
+			
 
 			// the gallery has not yet been saved, so use the POST parameters after sanitising them
 			$bulkTitleRaw = $_POST['BulkTitle'];
@@ -92,9 +97,18 @@ JS;
 			$image->write();
 			$photo->PhotoID = $image->ID;
 
-			// this publishes to staging, not live, which is what we want
-			$photo->write();
 
+
+			// this publishes to staging, not live, which is what we want
+			$photo->Sort = 100000+$this->SortOrder;
+
+			error_log("PHOTO SORT T1:".$photo->Sort);
+
+
+			$photo->write();
+			error_log("PHOTO SORT T2:".$photo->Sort);
+
+			//$photo->write();
 			$this->returnItemToUser($photo);
 
 
