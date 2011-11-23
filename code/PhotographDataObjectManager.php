@@ -24,7 +24,7 @@ class PhotographDataObjectManager extends FileDataObjectManager
 		
 		error_log("CONSTRUCTOR PDOM");
 		Requirements::css('dataobject_manager/css/ui/dom_jquery_ui.css');
-		Requirements::javascript('silverstripe-translatable-gallery/javascript/imagedataobject_manager.js');
+		
 
 		if(isset($_REQUEST['ctf'][$this->Name()])) {		
 				$this->imageSize = $_REQUEST['ctf'][$this->Name()]['imagesize'];
@@ -118,6 +118,9 @@ class PhotographDataObjectManager_Item extends FileDataObjectManager_Item
 	{
 		return $this->parent->imageSize;
 	}
+
+
+	
 
 }
 
@@ -244,7 +247,10 @@ class PhotographDataObjectManager_Popup extends FileDataObjectManager_Popup
 	{
 			parent::__construct($controller, $name, $fields, $validator, $readonly, $dataObject);
 			Requirements::css('dataobject_manager/css/imagedataobject_manager.css');
+			Requirements::javascript('silverstripe-links/javascript/photograph_popup.js');
 	}
+
+
 
 }
 
@@ -275,6 +281,8 @@ class PhotographDataObjectManager_ItemRequest extends DataObjectManager_ItemRequ
 		$dataObject = $this->dataObj();
 
 		error_log("SACVING COMPLEXT TABLE DATA, wooot");
+				error_log("AJAX?:".Director::is_ajax());
+
 
 		try {
 						error_log("T1");
@@ -316,10 +324,10 @@ class PhotographDataObjectManager_ItemRequest extends DataObjectManager_ItemRequ
 		
 		$form->sessionMessage($message, 'good');
 
-		error_log("AJAX?:".Director::is_ajax());
-
+error_log("T5");
 		//error_log("IS AJAX:".Director::isAjax());
 		 FormResponse::add("alert('from popup');");
+		error_log("T6");
       	return FormResponse::respond();
 		//Director::redirectBack();
 	}
