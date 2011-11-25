@@ -103,6 +103,8 @@ JS;
 			$image->Title = $this->Title;
 			$image->Filename = $this->Filename;
 
+			$photo->InitiallySortedByFilename = false;
+
 			// this publishes to staging, not live, which is what we want
 			$photo->Sort = 100000+$this->SortOrder;
 			$photo->SortOrder = $photo->Sort;
