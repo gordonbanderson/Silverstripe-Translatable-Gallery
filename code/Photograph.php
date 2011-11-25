@@ -8,7 +8,8 @@ class Photograph extends Page {
     'Copyright' => 'Text',
     'License' => 'Text',
     'Photographer' => 'Text',
-    'ShowOnHomePage' => 'Boolean'
+    'ShowOnHomePage' => 'Boolean',
+    'InitiallySortedByFilename' => 'Boolean'
   );
   
     static $has_one = array(
