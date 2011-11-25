@@ -108,15 +108,65 @@ function deleteProcessedImageFiles() {
 
     if(!self::$has_written) { 
           //FormResponse::add("window.location.reload();");
-          self::$has_written = true; 
+          //self::$has_written = true; 
 
 
             // cehck for image files, as the on after write method is called more than once
           // If we delete too soon, the bulk uploaded ImageFile objects wont get attached to photographs
-          $imageFiles = DataObject::get('ImageFile', 'GalleryID='.$this->ID, 'Filename');
+          $unsortedPhotographs = DataObject::get(
+            'Photograph',
+            'InitiallySortedByFilename=false AND `SiteTree`.`ParentID`='.$this->ID,
+            'Filename',
+            'Left Join File on File.ID = PhotoID'
+          );
 
-          $imageFileIDs = array();
+          if ($unsortedPhotographs) {
+            $parentID = $this->ID;
 
+
+          FormResponse::add( <<<JS
+            var tree = $('sitetree');
+            var parent = tree.getTreeNodeByIdx($parentID);
+            var node;
+            var nodeList = [];
+JS
+);
+
+          $i = 1 + DB::query("SELECT Max(Sort) FROM SiteTree WHERE ParentID = ".$this->ID)->value();
+       
+          foreach ($unsortedPhotographs as $key => $value) {
+            error_log("UNSORTED PIC:".$value->ID." ".$value->Title);
+            $vid = $value->ID;
+
+            $value->SortOrder = $i;
+            $value->Sort = $i;
+            $value->InitiallySortedByFilename = true;
+            $value->write();
+            $i++;
+
+            FormResponse::add( <<< JS
+            node = tree.getTreeNodeByIdx($vid);
+            parent.removeTreeNode(node);
+            nodeList.push(node);
+JS
+);
+          }
+
+
+
+          FormResponse::add( <<< JS
+      for (var i = 0; i < nodeList.length; i++){ 
+  node = nodeList[i];
+  //alert(node);
+      parent.appendTreeNode(node);
+
+  
+}
+JS
+);
+          }
+
+          
           /*
           foreach ($imageFiles as $key => $imageFile) {
             array_push($imageFileIDs, $imageFile->ID);
