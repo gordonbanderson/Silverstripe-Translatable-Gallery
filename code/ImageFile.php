@@ -47,15 +47,15 @@ JS;
 	public function onBeforeWrite() {
 		parent::onBeforeWrite();
 
-		error_log("IF: Image file on before write");
+		//DEBUGLOG("IF: Image file on before write");
 
 		// create a photograph using these details
 		if ($this->GalleryID) {
 			//FIXME - still need to sort by filename
 			
-			error_log("IF: T2");
+			//DEBUGLOG("IF: T2");
 
-			error_log("IMAGE FILE:(".$this->SortOrder.') '.$this->Title);
+			//DEBUGLOG("IMAGE FILE:(".$this->SortOrder.') '.$this->Title);
 
 
 			$photo = new Photograph();
@@ -114,14 +114,14 @@ JS;
 
 		
 
-			error_log("PHOTO SORT T1:".$photo->Sort);
+			//DEBUGLOG("PHOTO SORT T1:".$photo->Sort);
 
 
 			$photo->write();
 
 			// in effect mark th is for deletion
 			$this->PhotoID = $photo->ID;
-			error_log("PHOTO SORT T2:".$photo->Sort);
+			//DEBUGLOG("PHOTO SORT T2:".$photo->Sort);
 
 			//$photo->write();
 			$this->returnItemToUser($photo);
@@ -131,7 +131,7 @@ JS;
 
 
 		} else {
-			error_log("IF: T3");
+			//DEBUGLOG("IF: T3");
 
 		}
 		

@@ -22,7 +22,7 @@ class PhotographDataObjectManager extends FileDataObjectManager
 	{
 		parent::__construct($controller, $name, $sourceClass, $fileFieldName, $fieldList, $detailFormFields, $sourceFilter, $sourceSort, $sourceJoin); 
 		
-		error_log("CONSTRUCTOR PDOM");
+		//DEBUGLOG("CONSTRUCTOR PDOM");
 		Requirements::css('dataobject_manager/css/ui/dom_jquery_ui.css');
 		
 
@@ -31,7 +31,7 @@ class PhotographDataObjectManager extends FileDataObjectManager
 		}
 		$this->setAllowedFileTypes($this->limitFileTypes);
 		$this->GalleryID=$controller->ID;
-		error_log("GALLERY ID IN PDOM:".$this->GalleryID);
+		//DEBUGLOG("GALLERY ID IN PDOM:".$this->GalleryID);
 	}
 
 
@@ -39,14 +39,14 @@ class PhotographDataObjectManager extends FileDataObjectManager
 
 		$items = $this->Items();
 
-		error_log("ITEMS CLASS:".$items);
+		//DEBUGLOG("ITEMS CLASS:".$items);
 
 		$photoArray =  array();
 
 		foreach ($items as $key => $item) {
 
-			error_log("ITEM: ".$item);
-			error_log($item->ID);
+			//DEBUGLOG("ITEM: ".$item);
+			//DEBUGLOG($item->ID);
 
 			$photoArray[$item->ID] = $photoArray;
 			# code...
@@ -54,14 +54,14 @@ class PhotographDataObjectManager extends FileDataObjectManager
 		//var_dump($items);
 		//$mySet->sort('Lastname'); 
 		$gallery = DataObject::get('Gallery', $this->GalleryID);
-		error_log("DATA GALLERY:".$gallery);
+		//DEBUGLOG("DATA GALLERY:".$gallery);
 
 		/*
 		$photoPages = $gallery->AllChildren();
 		foreach ($photoPages as $key => $photoPage) {
 			$photoID = $photoPage->PhotoID;
 			$sortOrder = $photoPage->SortOrder;
-			error_log("PHOTO ID:".$photoID." -> SORT: ".$sortOrder);
+			//DEBUGLOG("PHOTO ID:".$photoID." -> SORT: ".$sortOrder);
 		}
 
 		$items->sort('SortOrder');
@@ -133,18 +133,18 @@ class PhotographDataObject_Controller extends FileDataObjectManager_Controller {
 
 	public function dosort()
 	 {
-	 	error_log("**** PHOTO DOM CONTROLLER - do sort");
-	 	error_log(print_r($_POST,1));
+	 	//DEBUGLOG("**** PHOTO DOM CONTROLLER - do sort");
+	 	//DEBUGLOG(print_r($_POST,1));
 	    if(!empty($_POST) && is_array($_POST)) {
-	    	error_log("T1");
+	    	//DEBUGLOG("T1");
 	      $className = 'Photograph'; // set by routing
 	      if(stristr($className,"-") !== false) {
-	      	error_log("T2");
+	      	//DEBUGLOG("T2");
 	       list($ownerClass, $className) = explode("-",$className);
 	      }
 	      $many_many = ((is_numeric($this->urlParams['OtherID'])) && SortableDataObject::is_sortable_many_many($className));
 	      foreach($_POST as $group => $map) {
-	      	error_log("T3");
+	      	//DEBUGLOG("T3");
 	        if(substr($group, 0, 7) == "record-") {
 	          if($many_many) {
 	            $controllerID = $this->urlParams['OtherID'];          
@@ -159,18 +159,18 @@ class PhotographDataObject_Controller extends FileDataObjectManager_Controller {
 	            if(!isset($relationName)) return false;
 	            list($parentClass, $componentClass, $parentField, $componentField, $table) = singleton($ownerClass)->many_many($relationName);  
 	            
-	            error_log("B1");          
+	            //DEBUGLOG("B1");          
 	            foreach($map as $sort => $id) {
 	              DB::query("UPDATE \"$table\" SET \"SortOrder\" = $sort WHERE \"{$className}ID\" = $id AND \"{$ownerClass}ID\" = $controllerID");
 	              DB::query("UPDATE \"$table\" SET \"Sort\" = $sort WHERE \"{$className}ID\" = $id AND \"{$ownerClass}ID\" = $controllerID");
 	          	}
 	          }
 	          else {
-	          	error_log("B2");
+	          	//DEBUGLOG("B2");
 
 	          	$sortOrder = array();
 	            foreach($map as $sort => $id) {
-	            	error_log("SORTING:$id -> $sort");
+	            	//DEBUGLOG("SORTING:$id -> $sort");
 	              $obj = DataObject::get_by_id($className, $id);
 	              $obj->SortOrder = $sort;
 	              $obj->Sort = $sort;
@@ -181,14 +181,14 @@ class PhotographDataObject_Controller extends FileDataObjectManager_Controller {
 	              array_push($sortOrder, $id);
 	            }
 
-	            error_log("SORT ORDER");
-	            error_log(print_r($sortOrder,1));
+	            //DEBUGLOG("SORT ORDER");
+	            //DEBUGLOG(print_r($sortOrder,1));
 
 	            if ($sortOrder) {
 	            	$cid = $sortOrder[0];
-	            	error_log("DESIRED CHILD ID:".$cid);
+	            	//DEBUGLOG("DESIRED CHILD ID:".$cid);
 	            	$child = DataObject::get_by_id('Photograph',$cid);
-	            	error_log("CHILD ID:".$child->ID);
+	            	//DEBUGLOG("CHILD ID:".$child->ID);
 	            	$parentID = (int) $child->ParentID;
 	            	$response = '';
 	            	FormResponse::add( <<<JS
@@ -231,12 +231,12 @@ JS
 	    }
 
 	    if(Director::is_ajax()) {
-	    	error_log("DIR AJAX");
+	    	//DEBUGLOG("DIR AJAX");
 	    	//FormResponse::add("alert('PDOM response from code');");
         	FormResponse::status_message('Sorted', 'good');
 			return FormResponse::respond();
 	    } else {
-	    	error_log("DIR NOT AJAX");
+	    	//DEBUGLOG("DIR NOT AJAX");
 	    }
 	}
 }
@@ -280,24 +280,24 @@ class PhotographDataObjectManager_ItemRequest extends DataObjectManager_ItemRequ
 	function saveComplexTableField($data, $form, $request) {
 		$dataObject = $this->dataObj();
 
-		error_log("SACVING COMPLEXT TABLE DATA, wooot");
-				error_log("AJAX?:".Director::is_ajax());
+		//DEBUGLOG("SACVING COMPLEXT TABLE DATA, wooot");
+				//DEBUGLOG("AJAX?:".Director::is_ajax());
 
 
 		try {
-						error_log("T1");
+						//DEBUGLOG("T1");
 
 			$form->saveInto($dataObject);
 			$dataObject->write();
 		} catch(ValidationException $e) {
 			$form->sessionMessage($e->getResult()->message(), 'bad');
-			error_log("T2");
+			//DEBUGLOG("T2");
 			return Director::redirectBack();
 		}
 		
 		// Save the many many relationship if it's available
 		if(isset($data['ctf']['manyManyRelation'])) {
-						error_log("T3");
+						//DEBUGLOG("T3");
 
 			$parentRecord = DataObject::get_by_id($data['ctf']['parentClass'], (int) $data['ctf']['sourceID']);
 			$relationName = $data['ctf']['manyManyRelation'];
@@ -319,15 +319,15 @@ class PhotographDataObjectManager_ItemRequest extends DataObjectManager_ItemRequ
 			$closeLink
 		);
 
-					error_log("T4");
+					//DEBUGLOG("T4");
 
 		
 		$form->sessionMessage($message, 'good');
 
-error_log("T5");
-		//error_log("IS AJAX:".Director::isAjax());
+//DEBUGLOG("T5");
+		////DEBUGLOG("IS AJAX:".Director::isAjax());
 		 FormResponse::add("alert('from popup');");
-		error_log("T6");
+		//DEBUGLOG("T6");
       	return FormResponse::respond();
 		//Director::redirectBack();
 	}

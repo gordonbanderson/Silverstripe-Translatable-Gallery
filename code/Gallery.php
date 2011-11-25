@@ -19,19 +19,19 @@ class Gallery extends Page {
 
    function getFirstPhotograph() { 
       $result = null;
-      error_log("Get first child T1");
+      //DEBUGLOG("Get first child T1");
       if($children = $this->Children()) {
-            error_log("Get first child T2");
+            //DEBUGLOG("Get first child T2");
  
          if($firstChild = $children->First()) { 
-                error_log("Get first child T3");
+                //DEBUGLOG("Get first child T3");
 
            $result = $children->First();
          } 
       }
 
 
-            error_log("Get first child T4");
+            //DEBUGLOG("Get first child T4");
 
 
       return $result;
@@ -88,12 +88,12 @@ array('Foo' => 'Foo', 'Bar' => 'Bar')
 
 
 function deleteProcessedImageFiles() {
-   error_log("Deleting images from ImageFile");
+   //DEBUGLOG("Deleting images from ImageFile");
     $sql1 = "DELETE from File where ClassName = 'ImageFile' and ID in (select ID from ImageFile where PhotoID != 0 AND GalleryID=".$this->ID.")";
-    error_log($sql1);
+    //DEBUGLOG($sql1);
     DB::query($sql1);
     $sql2 = "DELETE from ImageFile where PhotoID !=0 AND GalleryID=".$this->ID;
-    error_log($sql2);
+    //DEBUGLOG($sql2);
     DB::query($sql2);
 }
 
@@ -124,9 +124,9 @@ function deleteProcessedImageFiles() {
 
           $idList = implode(",", $imageFileIDs);
 
-          error_log("ID LIST:".$idList);
+          //DEBUGLOG("ID LIST:".$idList);
       */
-        //  error_log("Gallery:  image files ".$imageFiles);
+        //  //DEBUGLOG("Gallery:  image files ".$imageFiles);
       
 
         

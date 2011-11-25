@@ -65,7 +65,7 @@ class Photograph extends Page {
 
 
   public function returnItemToUser($p) {
-    error_log("returning JS to user from photo");
+    //DEBUGLOG("returning JS to user from photo");
     if(Director::is_ajax()) {
       // Prepare the object for insertion.
       $parentID = (int) $p->ParentID;
@@ -114,21 +114,21 @@ JS;
 
     if (!isset($_POST['ToDo'])) {
       // we came from the popup
-      error_log("FROM POPUP");
+      //DEBUGLOG("FROM POPUP");
            // FormResponse::add("alert('from popup');");
       // FormResponse::respond();
 
     }
 
-  //  error_log("OBJ: ".$this->ID." SORT=".$this->Sort.", SORT ORDER=".$this->SortOrder);  
-  //  error_log("OBJ OWNER: ".$this->ID." SORT=".$this->owner->Sort.", SORT ORDER=".$this->owner->SortOrder);
+  //  //DEBUGLOG("OBJ: ".$this->ID." SORT=".$this->Sort.", SORT ORDER=".$this->SortOrder);  
+  //  //DEBUGLOG("OBJ OWNER: ".$this->ID." SORT=".$this->owner->Sort.", SORT ORDER=".$this->owner->SortOrder);
 
-  error_log("POPUP? ".$this->FromPopup);
+  //DEBUGLOG("POPUP? ".$this->FromPopup);
     
     // If the sort order and sort params are diffrent, assumed changed by photo dom
     
 
-       error_log("Tweaking tree for save");
+       //DEBUGLOG("Tweaking tree for save");
 
       $parentID = (int) $this->ParentID;
       $id = $this->ID ? $this->ID : "new-$this->class-$this->ParentID";
@@ -140,7 +140,7 @@ JS;
       //static DataObject get_one( string $callerClass, [string $filter = ""], [boolean $cache = true], [string $orderby = ""])
 
       $where = 'ParentID = '.$parentID;// ' and ShortOrder > '.$this->SortOrder;
-      error_log("WHERE:".$where);
+      //DEBUGLOG("WHERE:".$where);
       $nextItem = DataObject::get_one(
         'Photograph',
         $where,
@@ -148,13 +148,13 @@ JS;
         'SortOrder Asc'
       );
 
-      error_log("NEXT ITEM");
-      error_log($nextItem);
+      //DEBUGLOG("NEXT ITEM");
+      //DEBUGLOG($nextItem);
 
       $nextID = '';
       $hasNext = 'false';
 
-      error_log("CURRENT ID:".$this->owner->ID."(".$this->owner->SortOrder.") NEXT IS ".$nextID);
+      //DEBUGLOG("CURRENT ID:".$this->owner->ID."(".$this->owner->SortOrder.") NEXT IS ".$nextID);
 
       if ($nextItem) {
         $nextID = $nextItem->ID;
