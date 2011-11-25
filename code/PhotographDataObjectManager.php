@@ -168,6 +168,8 @@ class PhotographDataObject_Controller extends FileDataObjectManager_Controller {
 	          else {
 	          	//DEBUGLOG("B2");
 
+
+
 	          	$sortOrder = array();
 	            foreach($map as $sort => $id) {
 	            	//DEBUGLOG("SORTING:$id -> $sort");
@@ -175,7 +177,12 @@ class PhotographDataObject_Controller extends FileDataObjectManager_Controller {
 	              $obj->SortOrder = $sort;
 	              $obj->Sort = $sort;
 	              $obj->write();
-	              $obj->Publish('Stage', 'Live');
+
+	              //FIXME - should do this more efficiently
+	              //propogate the sort to published items if they are published
+	              if ($obj->isPublished()) {
+	              	$obj->Publish('Stage', 'Live');
+	              }
 
 
 	              array_push($sortOrder, $id);
