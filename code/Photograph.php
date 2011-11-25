@@ -106,11 +106,11 @@ JS;
     parent::onBeforeWrite();
 
     // give data object photo sorter priority here
-  /*
+  
     if ($this->Owner->Sort != $this->Owner->SortOrder) {
        $this->Owner->Sort = $this->Owner->SortOrder;
     }
-*/
+
 
     if (!isset($_POST['ToDo'])) {
       // we came from the popup
@@ -139,7 +139,7 @@ JS;
 
       //static DataObject get_one( string $callerClass, [string $filter = ""], [boolean $cache = true], [string $orderby = ""])
 
-      $where = 'ParentID = '.$parentID. ' and SortOrder > '.$this->SortOrder;
+      $where = 'ParentID = '.$parentID;// ' and ShortOrder > '.$this->SortOrder;
       error_log("WHERE:".$where);
       $nextItem = DataObject::get_one(
         'Photograph',

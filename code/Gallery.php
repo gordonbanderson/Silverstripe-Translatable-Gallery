@@ -87,119 +87,54 @@ array('Foo' => 'Foo', 'Bar' => 'Bar')
 
 
 
+function deleteProcessedImageFiles() {
+   error_log("Deleting images from ImageFile");
+    $sql1 = "DELETE from File where ClassName = 'ImageFile' and ID in (select ID from ImageFile where PhotoID != 0 AND GalleryID=".$this->ID.")";
+    error_log($sql1);
+    DB::query($sql1);
+    $sql2 = "DELETE from ImageFile where PhotoID !=0 AND GalleryID=".$this->ID;
+    error_log($sql2);
+    DB::query($sql2);
+}
+
+
 
   function onAfterWrite() {
 
     parent::onAfterWrite();
 
+
    // FormResponse::add("alert('gallery write');");
 
     if(!self::$has_written) { 
-      //FormResponse::add("window.location.reload();");
-      self::$has_written = true; 
+          //FormResponse::add("window.location.reload();");
+          self::$has_written = true; 
 
 
-      // cehck for image files, as the on after write method is called more than once
-    // If we delete too soon, the bulk uploaded ImageFile objects wont get attached to photographs
-    $imageFiles = DataObject::get('ImageFile', 'GalleryID='.$this->ID, 'Filename');
+            // cehck for image files, as the on after write method is called more than once
+          // If we delete too soon, the bulk uploaded ImageFile objects wont get attached to photographs
+          $imageFiles = DataObject::get('ImageFile', 'GalleryID='.$this->ID, 'Filename');
 
-    $imageFileIDs = array();
+          $imageFileIDs = array();
 
-    /*
-    foreach ($imageFiles as $key => $imageFile) {
-      array_push($imageFileIDs, $imageFile->ID);
-    }
+          /*
+          foreach ($imageFiles as $key => $imageFile) {
+            array_push($imageFileIDs, $imageFile->ID);
+          }
 
-    $idList = implode(",", $imageFileIDs);
+          $idList = implode(",", $imageFileIDs);
 
-    error_log("ID LIST:".$idList);
-*/
-    error_log("Gallery: Deleting image files ".$imageFiles);
-    
-    if ($imageFiles) {
-      error_log("IMAGE FILES FOUND");
-      // we cannot use $imageFile->delete as this deletes the record in the File table
-      // instead delete the ImageFile records using raw sql
-
-      // find the existing max sort order
-  
-      foreach ($imageFiles as $key => $value) {
-            error_log("IMAGEFILE:".$value->ID);
-            error_log("    TITLE:".$value->Title);
-            error_log("    FILENAME:".$value->Filename);
-      }    
-
-
-     
-      // it is time to redraw the photographs in the correct order
-
-      // 1) normalise sort values and remove visually from the tree
-      $so = 1;
-   //   $photographs = DataObject::get('Photograph',
-  //      'ParentID='.$this->ID.' and PhotoID in ('.$idList.')'
-  //    );
-
-      $photographs = DataObject::get(
-        'Photograph',
-        '`SiteTree`.`ParentID`='.$this->ID,
-
-        'Filename',
-        'Left Join File on PhotoID = File.ID'
-      );
-
-      error_log("Photographs found:".$photographs.count('ID'));
-
-
-      //FIXME, check logic
-      $parentID = $this->ID;
-
-                $response = '';
-                FormResponse::add( <<<JS
-var tree = $('sitetree');
-var parent = tree.getTreeNodeByIdx($parentID);
-var node;
-var nodeList = [];
-JS
-);
-
-      foreach($photographs as $key => $value) {
-        error_log("**** Normalizing (".$Value->ID.") ".$value->Title);
-        $value->SortOrder = $so;
-        $value->Sort = $so;
-        $value->write();
-        $vid = $value->ID
-        $so = $so + 1;
-
-          FormResponse::add( <<< JS
-node = tree.getTreeNodeByIdx($vid);
-parent.removeTreeNode(node);
-nodeList.push(node);
-JS
-);
-
-      }
-
-
-
-      FormResponse::add( <<< JS
-      for (var i = 0; i < nodeList.length; i++){ 
-  node = nodeList[i];
-  //alert(node);
-      parent.appendTreeNode(node);
-
-  
-}
-JS
-);
-
-
-error_log("Deleting images from ImageFile");
- DB::query("DELETE from File where ClassName = 'ImageFile' and ID in (select ID from ImageFile where GalleryID=".$this->ID.")");
-      DB::query("DELETE from ImageFile where GalleryID=".$this->ID);
-
+          error_log("ID LIST:".$idList);
+      */
+        //  error_log("Gallery:  image files ".$imageFiles);
       
 
+        
+
     }
+
+    $this->deleteProcessedImageFiles();
+
     }
     
     //this only does the main panel - LeftAndMain::ForceReload();
@@ -207,7 +142,7 @@ error_log("Deleting images from ImageFile");
 
 
     
-   }
+   
 }
 
 

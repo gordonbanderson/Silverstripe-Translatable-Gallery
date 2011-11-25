@@ -6,6 +6,11 @@ class ImageFile extends Image {
 	);
 
 
+	static $db = array(
+    'PhotoID' => 'Int'
+  	);
+
+
 public function returnItemToUser($p) {
 		if(Director::is_ajax()) {
 			// Prepare the object for insertion.
@@ -33,6 +38,9 @@ JS;
 			Director::redirect('admin/' . self::$url_segment . '/show/' . $p->ID);
 		}
 	}
+
+
+	
 
 
 	
@@ -94,18 +102,25 @@ JS;
 			$image->Name = $this->Title;
 			$image->Title = $this->Title;
 			$image->Filename = $this->Filename;
+
+			// this publishes to staging, not live, which is what we want
+			$photo->Sort = 100000+$this->SortOrder;
+			$photo->SortOrder = $photo->Sort;
+
 			$image->write();
 			$photo->PhotoID = $image->ID;
 
 
 
-			// this publishes to staging, not live, which is what we want
-			$photo->Sort = 100000+$this->SortOrder;
+		
 
 			error_log("PHOTO SORT T1:".$photo->Sort);
 
 
 			$photo->write();
+
+			// in effect mark th is for deletion
+			$this->PhotoID = $photo->ID;
 			error_log("PHOTO SORT T2:".$photo->Sort);
 
 			//$photo->write();
