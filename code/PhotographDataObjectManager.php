@@ -24,7 +24,7 @@ class PhotographDataObjectManager extends FileDataObjectManager
 		
 		//DEBUGLOG("CONSTRUCTOR PDOM");
 		Requirements::css('dataobject_manager/css/ui/dom_jquery_ui.css');
-		
+
 
 		if(isset($_REQUEST['ctf'][$this->Name()])) {		
 				$this->imageSize = $_REQUEST['ctf'][$this->Name()]['imagesize'];
