@@ -1,0 +1,23 @@
+.fbPreviewImg {
+    float: left;
+    padding-right: 4px;
+    padding-bottom: 4px;
+    opacity: 0.7;
+}
+
+#facebookGalleryPreview .caption {
+    display: none;
+}
+
+.hidden {
+    color: red;
+    background: yellow;
+}
+
+.processing {
+    opacity:1;
+    padding-left: 20px;
+    padding-right: 20px;
+    border: solid red 1px;
+    background: white url(/cms/images/network-save.gif) no-repeat center left;
+}
