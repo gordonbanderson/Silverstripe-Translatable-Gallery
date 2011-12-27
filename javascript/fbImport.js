@@ -141,16 +141,18 @@ JQ(document).ready(function() {
 				var galleryID = JQ('#Form_EditForm_FacebookAlbumID').val();
 				var msg = "<p>No images were found for gallery with facebook id '"+galleryID+"'</p>";
 				JQ('#facebookGalleryPreview').html(msg);
+				errorMessage('No images found');
 
 			} else {
 				JQ('#facebookGalleryPreview').html(htmlPreview);
+				statusMessage('Images found');
+
 			}
 
 			JQ('#fbImportButton').removeClass('hidden');
 
 			JQ('#Form_EditForm_FacebookAlbumID').removeClass('loading');
 
-			statusMessage('Album found successfully');
 
 			JQ('#Form_EditForm_Content_ifr').contents().find('#tinymce').html('<p>'+data['description']+'</p>');  	
 		  });
