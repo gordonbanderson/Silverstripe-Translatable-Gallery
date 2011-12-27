@@ -1,10 +1,14 @@
 <?php
+
+require_once "facebook.php";
+
 class Gallery extends Page {
   static $db = array (
     'BulkTitle' => 'Varchar',
     'BulkCaption' => 'Varchar',
     'BulkCopyright' => 'Varchar',
-    'BulkLicense' => 'Varchar'
+    'BulkLicense' => 'Varchar',
+    'FacebookAlbumID' => 'Varchar'
   );
 
  
@@ -69,7 +73,65 @@ class Gallery extends Page {
       // Join clause
     );
 
-    $fields->addFieldToTab("Root.Content.AllImages",$manager); 
+
+$facebook = new Facebook(array(
+    'appId'  => '200187276738808',
+    'secret' => '6b5b0e791580c88f4a9ea527d44fdd78',
+    'cookie' => true, // enable optional cookie support
+  ));
+
+  $content = '<p>
+    You can import your own and photos  you can see into a gallery.  You will be prompted to authenticate against Facebook prior to importing.
+    </p><p>';
+ 
+
+  if ($facebook->getSession())  {
+    $content .= "You are logged in to facebook and can access friends pictures. &nbsp;";
+    $content .= '<a href="';
+    $content .= $facebook->getLogoutUrl();
+    $content .= '">Logout</a><br/>';
+  } else {
+      $content .= "Login in to facebook using the following link:";
+      $content .= '<a href="';
+      $content .= $facebook->getLoginUrl();
+      $content .= '">Login</a><br/>';
+  }
+
+  $content .= "</p>";
+
+
+       
+ $l =new LiteralField (
+    $name = "literalfield",
+    $content
+ );
+
+
+
+
+
+    $fields->addFieldToTab('Root.Content.Facebook', $l);
+    $fields->addFieldToTab('Root.Content.Facebook', new TextField('FacebookAlbumID', 'Facebook Album ID or link URL'));
+
+    $l2 = new LiteralField(
+      $name = 'literalyfield2',
+      $content = '
+      <div id="importButton_'.$this->ID.'" class="facebookImportButton hidden"><input type="button" class="triggerFacebookImportButton" id="fbImportButton" value="Import"/></div>
+      <div id="facebookGalleryPreview">Images will appear here</div>
+      <div id="fbjson">ID OF GALLERY:'.$this->ID.'<div>
+      '
+    );
+
+    $fields->addFieldToTab('Root.Content.Facebook', $l2);
+
+
+    $fields->addFieldToTab("Root.Content.AllImages",$manager);
+
+
+
+  Requirements::javascript('silverstripe-translatable-gallery/javascript/fbImport.js');
+  Requirements::css('silverstripe-translatable-gallery/css/galleryAdmin.css');
+
 
 
 
@@ -187,9 +249,22 @@ JS
 
     }
     
-    //this only does the main panel - LeftAndMain::ForceReload();
 
 
+
+
+    function getCMSActions(){
+         
+        $actions = parent::getCMSActions();
+         
+        $Action = new FormAction(
+               "doPublishAllPhotos",
+               "Publish All Photos"
+            );
+        $actions->push($Action);
+         
+        return $actions;
+    }
 
     
    
@@ -215,20 +290,217 @@ class Gallery_Controller extends Page_Controller {
    *
    * @var array
    */
-  public static $allowed_actions = array ('Photograph');
+  public static $allowed_actions = array ('PreviewAlbum', 'ImportPicture');
 
   public function init() {
     parent::init();
 
+    $this->facebook = new Facebook(array(
+      'appId'  => '200187276738808',
+      'secret' => '6b5b0e791580c88f4a9ea527d44fdd78',
+      'cookie' => true, // enable optional cookie support
+    ));
+
     // Note: you should use SS template require tags inside your templates 
     // instead of putting Requirements calls here.  However these are 
     // included so that our older themes still work
-    Requirements::themedCSS('gallery.css');
+    #Requirements::themedCSS('gallery.css');
   }
 
     public function ColumnLayout() {
       return 'layout1col';
     }
+
+
+    public function PreviewAlbum($request) {
+      // FIXME - check for permissions to create gallery
+        error_log("Video metadata request");
+        error_log(print_r($request,1));
+        $albumID = Convert::raw2sql($request['AlbumIDOrURL']);
+
+       
+
+
+
+        $fql    =   "SELECT pid, src, src_small, src_big, caption FROM photo WHERE aid = '" . $albumID ."'  ORDER BY created DESC limit 4";
+        error_log($fql);
+        $param  =   array(
+         'method'    => 'fql.query',
+         'query'     => $fql,
+         'callback'  => ''
+        );
+        $fqlResult   =   $this->facebook->api($param);
+
+        $result['fql']=$fqlResult;
+
+        $images = array();
+
+        foreach( $fqlResult as $keys => $values ){
+    
+          if( $values['caption'] == '' ){
+            $caption = "";
+          }else{
+            $caption = $values['caption'];
+          }
+
+          $image = array();
+          $image['caption'] = $caption;
+          $image['pid'] = $values['pid'];
+          $image['src_small'] = $values['src_small'];
+          $image['src_big'] = $values['src_big'];
+          
+
+          array_push($images, $image);
+        }
+
+        $result['images'] = $images;
+
+        /*
+
+"0":{
+"pid":"4591473524378070457",
+"src":"https:\/\/fbcdn-photos-a.akamaihd.net\/hphotos-ak-ash4\/394577_2642141487319_1069035736_2780601_1675166622_s.jpg",
+"src_small":"https:\/\/fbcdn-photos-a.akamaihd.net\/hphotos-ak-ash4\/394577_2642141487319_1069035736_2780601_1675166622_t.jpg",
+"src_big":"https:\/\/fbcdn-sphotos-a.akamaihd.net\/hphotos-ak-ash4\/s720x720\/394577_2642141487319_1069035736_2780601_1675166622_n.jpg",
+"caption":""}
+        */
+       
+
+        $result['thumbnail1'] = 'this is a test';
+   
+        $this->response->setStatusCode(200, "Found " );
+
+        echo json_encode($result);
+
+        error_log("RESULT");
+        error_log(print_r($result,1));
+        die;
+    }
+
+
+    /* Import a single picture */
+    function ImportPicture($request) {
+      /*
+      $p = new Page();
+      $p->Title = 'This is a test';
+      $p->Content = 'Content body test';
+      $p->ParentID = 238;
+      $p->Locale = Translatable::get_current_locale();
+
+
+      error_log("P:validation_enabled:".$p->get_validation_enabled());
+      //error_log("VALIDATION:".$p->validate());
+      $p->write(false,true);
+      error_log("PAGE:".print_r($p,1));
+      error_log("PAGE ID AFTER WRITE:".$p->ID);
+      die;
+*/
+      error_log("++++++++++++++ IMPORT PIC T1");
+        //error_log(print_r($request,1));
+error_log("T2");
+        $gid = Convert::raw2sql($request->param('ID'));
+error_log("T3 - gid = ".$gid);
+
+        // we want to deal with staging only
+        Versioned::reading_stage('Stage');
+        $gallery = DataObject::get_by_id('Gallery', $gid);
+        error_log("Gallery:".$gallery->ID);
+
+        error_log("T3a");
+        //$albumID = Convert::raw2sql($request['AlbumIDOrURL']);
+        $result = array();
+        //FIXME - make assets programmable, not hardwired
+        $uploadFolderPath = "/galleries/".$gallery->URLSegment;
+        $uploadFolder = Folder::findOrMake($uploadFolderPath);
+
+
+error_log("T4");
+        $absPath = Director::baseFolder().'/assets'.$uploadFolderPath;
+        error_log("ABS PATH:".$absPath);
+        error_log("UPLOAD FOLDER");
+        error_log(print_r($uploadFolder,1));
+        error_log("T5");
+
+        $pid = Convert::raw2sql($request['pid']);
+        $caption = Convert::raw2sql($request['caption']);
+        $src_big = Convert::raw2sql($request['src_big']);
+
+
+        $filepath = $absPath.'/'.$pid.'.JPG';
+
+        error_log("WGET FILE PATH:".$filepath);
+        
+
+         $cmd = "wget --no-check-certificate -O $filepath $src_big";
+
+         error_log("COMMAND:".$cmd);
+         exec($cmd);
+
+         error_log("T11 - creating iamge");
+        $image = new Image();
+        $image->Name = $pid;
+        $image->Title = $pid;
+        error_log("UPLOAD FOLDER PATH:".$uploadFolderPath);
+        $imagepath = str_replace('/assets/', '', $uploadFolderPath);
+        $imagepath .= "/$pid.JPG";
+        error_log("IMAGE PATH:".$imagepath);
+
+
+        $image->Filename = "$pid.JPG";
+        $image->ParentID = $uploadFolder->ID;
+        $image->write();
+
+
+error_log("T11 - creating photograph");
+        $pic = new Photograph();
+
+        $pic->Title = $pid;
+        $pic->Caption = $caption;
+        $pic->PhotoID = $image->ID;
+        $pic->ParentID = $gid;
+        $pic->Locale = Translatable::get_current_locale();
+
+
+        error_log("Photograph: PhotoID:".$image->ID);
+        error_log("Photo parent id:".$pic->ParentID);
+        
+        $x = $pic->write();
+
+        error_log("WRITE:".$x." ID OF PHOTOGRAPH IN DB:".$pic->ID);
+
+        $pic->Publish('Live', 'Stage');
+        $pic->doUnpublish();
+
+
+
+
+        $y = DataObject::get('Photograph', $pic->ID);
+        error_log("PHOTO FROM DB:");
+        error_log("PHOTO: ID - ".$y->ID);
+        error_log("PHOTO: TITLE - ".$y->Title);
+
+
+error_log("T12 - done - photo id is ".$pic->ID);
+
+
+        /*
+
+        $new_name = trim($request->requestVar('NewFolder'),"/");
+                                        $clean_path = self::relative_asset_dir($upload_folder->Filename);
+                                        $new_folder = Folder::findOrMake($clean_path.$new_name);
+*/
+
+        $result['success'] = true;
+
+                //Versioned::reading_stage('Live');
+
+
+                echo json_encode($result);
+
+
+        die;
+    }
+
 }
 
 ?>
