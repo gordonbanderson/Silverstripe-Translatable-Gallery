@@ -117,7 +117,7 @@ $facebook = new Facebook(array(
       $name = 'literalyfield2',
       $content = '
       <div id="importButton_'.$this->ID.'" class="facebookImportButton hidden"><input type="button" class="triggerFacebookImportButton" id="fbImportButton" value="Import"/></div>
-      <div id="facebookGalleryPreview">Images will appear here</div>
+      <div id="facebookGalleryPreview"><p>Images will appear here</p></div>
       <div id="fbjson">ID OF GALLERY:'.$this->ID.'<div>
       '
     );
@@ -322,7 +322,7 @@ class Gallery_Controller extends Page_Controller {
 
 
 
-        $fql    =   "SELECT pid, src, src_small, src_big, caption FROM photo WHERE aid = '" . $albumID ."'  ORDER BY created DESC limit 4";
+        $fql    =   "SELECT pid, src, src_small, src_big, caption FROM photo WHERE aid = '" . $albumID ."'  ORDER BY created DESC";// limit 4";
         error_log($fql);
         $param  =   array(
          'method'    => 'fql.query',
@@ -404,6 +404,8 @@ error_log("T3 - gid = ".$gid);
         // we want to deal with staging only
         Versioned::reading_stage('Stage');
         $gallery = DataObject::get_by_id('Gallery', $gid);
+        Versioned::reading_stage('Live');
+
         error_log("Gallery:".$gallery->ID);
 
         error_log("T3a");
@@ -454,8 +456,16 @@ error_log("T4");
 error_log("T11 - creating photograph");
         $pic = new Photograph();
 
-        $pic->Title = $pid;
-        $pic->Caption = $caption;
+        if (!$caption) {
+          $caption = '';
+          $pic->Title = $pid;
+          $pic->Caption = $caption;
+
+        } else {
+          $pic->Title = $caption;
+          $pic->Caption = $caption;
+        }
+
         $pic->PhotoID = $image->ID;
         $pic->ParentID = $gid;
         $pic->Locale = Translatable::get_current_locale();
@@ -466,7 +476,7 @@ error_log("T11 - creating photograph");
         
         $x = $pic->write();
 
-        error_log("WRITE:".$x." ID OF PHOTOGRAPH IN DB:".$pic->ID);
+        //error_log("WRITE:".$x." ID OF PHOTOGRAPH IN DB:".$pic->ID);
 
         $pic->Publish('Live', 'Stage');
         $pic->doUnpublish();
