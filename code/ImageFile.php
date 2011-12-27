@@ -11,7 +11,7 @@ class ImageFile extends Image {
   	);
 
 
-public function returnItemToUser($p) {
+	public function returnItemToUser($p) {
 		if(Director::is_ajax()) {
 			// Prepare the object for insertion.
 			$parentID = (int) $p->ParentID;
