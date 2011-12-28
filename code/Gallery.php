@@ -114,7 +114,9 @@ $facebook = new Facebook(array(
 
 
     $fields->addFieldToTab('Root.Content.Facebook', $l);
-    $fields->addFieldToTab('Root.Content.Facebook', new TextField('FacebookAlbumID', 'Facebook Album ID or link URL'));
+    
+    if ($facebook->getSession()) {
+      $fields->addFieldToTab('Root.Content.Facebook', new TextField('FacebookAlbumID', 'Facebook Album ID'));
 
     $l2 = new LiteralField(
       $name = 'literalyfield2',
@@ -123,11 +125,11 @@ $facebook = new Facebook(array(
 <input type="button" class="facebookLoadAlbumsButton" id="facebookLoadAlbumsButton" value="Load Albums"/>
       </div>
       <div id="facebookGalleryPreview"><p>Images will appear here</p></div>
-      <div id="fbjson">ID OF GALLERY:'.$this->ID.'<div>
       '
     );
 
     $fields->addFieldToTab('Root.Content.Facebook', $l2);
+    }
 
 
 
@@ -367,6 +369,8 @@ class Gallery_Controller extends Page_Controller {
           }
 
           $image = array();
+
+
           $image['caption'] = $caption;
           $image['pid'] = $values['pid'];
           $image['src_small'] = $values['src_small'];
@@ -487,7 +491,10 @@ error_log("T11 - creating photograph");
           $pic->Caption = $caption;
 
         } else {
-          $pic->Title = $caption;
+          // limit tite to 6 words
+          $words = explode( ' ', $caption ); 
+          $title = implode( ' ', array_slice( $words, 0, 6 ) );
+          $pic->Title = $title;
           $pic->Caption = $caption;
         }
 
