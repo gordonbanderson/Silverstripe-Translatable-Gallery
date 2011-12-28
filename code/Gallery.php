@@ -73,6 +73,9 @@ class Gallery extends Page {
       // Join clause
     );
 
+        $fields->addFieldToTab("Root.Content.AllImages",$manager);
+
+
 
 $facebook = new Facebook(array(
     'appId'  => '200187276738808',
@@ -116,7 +119,9 @@ $facebook = new Facebook(array(
     $l2 = new LiteralField(
       $name = 'literalyfield2',
       $content = '
-      <div id="importButton_'.$this->ID.'" class="facebookImportButton hidden"><input type="button" class="triggerFacebookImportButton" id="fbImportButton" value="Import"/></div>
+      <div id="importButton_'.$this->ID.'" class="facebookImportButton hidden action"><input type="button" class="triggerFacebookImportButton" id="fbImportButton" value="Import"/>
+<input type="button" class="facebookLoadAlbumsButton" id="facebookLoadAlbumsButton" value="Load Albums"/>
+      </div>
       <div id="facebookGalleryPreview"><p>Images will appear here</p></div>
       <div id="fbjson">ID OF GALLERY:'.$this->ID.'<div>
       '
@@ -125,7 +130,6 @@ $facebook = new Facebook(array(
     $fields->addFieldToTab('Root.Content.Facebook', $l2);
 
 
-    $fields->addFieldToTab("Root.Content.AllImages",$manager);
 
 
 
@@ -290,7 +294,7 @@ class Gallery_Controller extends Page_Controller {
    *
    * @var array
    */
-  public static $allowed_actions = array ('PreviewAlbum', 'ImportPicture');
+  public static $allowed_actions = array ('PreviewAlbum', 'ImportPicture', 'ListAlbums');
 
   public function init() {
     parent::init();
@@ -312,15 +316,34 @@ class Gallery_Controller extends Page_Controller {
     }
 
 
+    //FIXME - add permissions checks
+    public function ListAlbums($request) {
+        $fql    =   "SELECT aid, cover_pid, name FROM album where owner=1069035736"; //  WHERE aid='1069035736_130940'";
+          $param  =   array(
+           'method'    => 'fql.query',
+           'query'     => $fql,
+           'callback'  => ''
+          );
+
+          error_log($fql);
+          $fqlResult   =   $this->facebook->api($param);
+
+          error_log("FQL RESULT GOT");
+
+          $result = array();
+          $result['fql']=$fqlResult;
+          error_log(print_r($fqlResult,1));
+          echo json_encode($result);
+          die;
+    }
+
+
+
     public function PreviewAlbum($request) {
       // FIXME - check for permissions to create gallery
         error_log("Video metadata request");
         error_log(print_r($request,1));
         $albumID = Convert::raw2sql($request['AlbumIDOrURL']);
-
-       
-
-
 
         $fql    =   "SELECT pid, src, src_small, src_big, caption FROM photo WHERE aid = '" . $albumID ."'  ORDER BY created DESC";// limit 4";
         error_log($fql);
@@ -454,6 +477,8 @@ error_log("T4");
 
 
 error_log("T11 - creating photograph");
+        Versioned::reading_stage('Stage');
+
         $pic = new Photograph();
 
         if (!$caption) {
@@ -474,23 +499,31 @@ error_log("T11 - creating photograph");
         error_log("Photograph: PhotoID:".$image->ID);
         error_log("Photo parent id:".$pic->ParentID);
         
-        $x = $pic->write();
+        $pic->write();
+
+        // prime the Javascript in order to write to the tree
+        $parentID = (int) $pic->ParentID;
+        $id = $pic->ID ? $pic->ID : "new-$pic->class-$pic->ParentID";
+        $treeTitle = Convert::raw2js($pic->TreeTitle());
+        $clazz = $pic->class;
+        $hasChildren = (is_numeric($id) && $pic->AllChildren() && $pic->AllChildren()->Count()) ? ' unexpanded' : '';
+
+        $result['parentID'] = $parentID;
+        $result['id'] = $id;
+        $result['treeTitle'] = $treeTitle;
+        $result['hasChildren'] = $hasChildren;
+        $result['class'] = $clazz;
+
+
 
         //error_log("WRITE:".$x." ID OF PHOTOGRAPH IN DB:".$pic->ID);
 
-        $pic->Publish('Live', 'Stage');
-        $pic->doUnpublish();
+       // $pic->Publish('Live', 'Stage');
+       // $pic->doUnpublish();
+
+        Versioned::reading_stage('Live');
 
 
-
-
-        $y = DataObject::get('Photograph', $pic->ID);
-        error_log("PHOTO FROM DB:");
-        error_log("PHOTO: ID - ".$y->ID);
-        error_log("PHOTO: TITLE - ".$y->Title);
-
-
-error_log("T12 - done - photo id is ".$pic->ID);
 
 
         /*
