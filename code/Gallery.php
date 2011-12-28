@@ -33,9 +33,9 @@ class Gallery extends Page {
 
 
   function CanUseFacebook() {
-    $result = ($facebook_application_id != null);
-    $result = $result && ($facebook_application_secret != null);
-    $result = $result && ($facebook_user_id != null);
+    $result = (self::$facebook_application_id != null);
+    $result = $result && (self::$facebook_application_secret != null);
+    $result = $result && (self::$facebook_user_id != null);
     return $result;
   }
 
@@ -122,7 +122,18 @@ class Gallery extends Page {
 
 
 
-$facebook = new Facebook(array(
+
+
+
+
+
+
+  Requirements::javascript('silverstripe-translatable-gallery/javascript/fbImport.js');
+  Requirements::css('silverstripe-translatable-gallery/css/galleryAdmin.css');
+
+
+  if (self::CanUseFacebook()) {
+    $facebook = new Facebook(array(
     'appId'  => Gallery::getFacebookApplicationID(),
     'secret' => Gallery::getFacebookApplicationSecret(),
     'cookie' => true, // enable optional cookie support
@@ -154,10 +165,6 @@ $facebook = new Facebook(array(
     $content
  );
 
-
-
-
-
     $fields->addFieldToTab('Root.Content.Facebook', $l);
     
     if ($facebook->getSession()) {
@@ -175,15 +182,7 @@ $facebook = new Facebook(array(
 
     $fields->addFieldToTab('Root.Content.Facebook', $l2);
     }
-
-
-
-
-
-  Requirements::javascript('silverstripe-translatable-gallery/javascript/fbImport.js');
-  Requirements::css('silverstripe-translatable-gallery/css/galleryAdmin.css');
-
-
+  }
 
 
     /*
