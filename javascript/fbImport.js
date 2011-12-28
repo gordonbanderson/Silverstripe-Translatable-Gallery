@@ -1,13 +1,50 @@
 JQ = jQuery.noConflict();
 
 
+function loadAlbumListing() {
+	JQ('#Form_EditForm_FacebookAlbumID').addClass('loading');
+		JQ('#fbImportButton').addClass('hidden');
+
+		JQ('#facebookGalleryPreview').html("<p>Loading Albums</p>");
+		JQ('#facebookGalleryPreview').addClass('loading');
+
+	//ListAlbums
+	JQ.ajax({
+	  type: "GET",
+	  //async: true,
+	  url: 'fbimport/ListAlbums/',
+	  dataType: 'json',
+	  //data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
+	  success: function(albums){
+		JQ('#facebookGalleryPreview').html("<p>Albums loaded</p>");
+	  	JQ('#facebookGalleryPreview').removeClass('loading');
+	  	var html = '<ul class="albumListing">';
+	  	for (var i = albums['fql'].length - 1; i >= 0; i--) {
+	  		
+	  		var album = albums['fql'][i];
+	  		html = html + "<li><h2 aid='"+album['aid']+"'>"+album['name']+"</h2></li>";
+
+	  	};
+
+	  	html = html + "</ul>";
+		JQ('#facebookGalleryPreview').html(html);
+
+
+
+	  },
+	  error: function(jqXHR, textStatus, errorThrown) {
+	  	errorMessage("An error occurred: '$textStatus+' ' + $errorThrown'");
+	  }
+	});
+}
+
+
 // import one image at a time and recurse once the image has finished loading
 function importImage(gallery_id, position) {
 	var previewImage = JQ('#facebookGalleryPreview').find('div:nth-child('+position+')');
 
 	if (JQ('#facebookGalleryPreview div').length == 0) {
 		// we are done
-		alert('done');
 	} else {
 		//alert(previewImage);
 	var pid = JQ(previewImage).attr('id').split('_')[1];
@@ -21,6 +58,9 @@ function importImage(gallery_id, position) {
 	//JQ(previewImage).html("Importing");
 	JQ(previewImage).addClass("processing");
 
+
+
+
 	
 
 
@@ -32,7 +72,22 @@ function importImage(gallery_id, position) {
 	  url: 'fbimport/ImportPicture/'+gallery_id,
 	  dataType: 'json',
 	  data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
-	  success: function(msg){
+	  success: function(data){
+
+	  	var id = data['id'];
+	  	var treeTitle = data['treeTitle'];
+	  	var hasChildren = data['hasChildren'];
+	  	var clazz = data['class'];
+	  	var parentID = data['parentID'];
+
+			var tree = $('sitetree');
+			var newNode = tree.createTreeNode(id, treeTitle, clazz+hasChildren);
+			var node = tree.getTreeNodeByIdx(parentID);
+			if(!node) {
+				node = tree.getTreeNodeByIdx(0);
+			}
+			node.open();
+			node.appendTreeNode(newNode);
 	  	
 	    JQ(previewImage).addClass('processing');
 
@@ -50,8 +105,24 @@ function importImage(gallery_id, position) {
 JQ(document).ready(function() {
 	alert('doc ready fb import js');
 
-				JQ('#fbImportButton').removeClass('hidden');
+	JQ('#fbImportButton').addClass('hidden');
 
+	JQ('.facebookLoadAlbumsButton').livequery('click', function() {
+		JQ('.facebookLoadAlbumsButton').addClass('hidden');
+		loadAlbumListing();
+	});
+
+
+	JQ('.albumListing li h2').livequery('click', function() {
+		var aid = JQ(this).attr('aid');
+		JQ('#Form_EditForm_FacebookAlbumID').val(aid);
+		JQ('#Form_EditForm_FacebookAlbumID').change();
+		JQ('.facebookLoadAlbumsButton').removeClass('hidden');
+
+	});
+
+
+	
 
 
 	JQ('.facebookImportButton').livequery('click', function() {
@@ -100,6 +171,8 @@ JQ(document).ready(function() {
 	// 3. Show import button
 	JQ('#Form_EditForm_FacebookAlbumID').livequery('change', function() {
 
+		JQ('#fbImportButton').addClass('hidden');
+		JQ('.facebookLoadAlbumsButton').removeClass('hidden');
 
 		JQ('#Form_EditForm_FacebookAlbumID').addClass('loading');
 		JQ('#fbImportButton').addClass('hidden');
@@ -137,6 +210,13 @@ JQ(document).ready(function() {
 				//alert(image['caption']);
 			};
 
+			/*
+https://www.facebook.com/media/set/?set=a.2592468685530.132592.1069035736&type=1
+
+2592468685530_132592
+1069035736_132592
+			*/
+
 			if (data['images'].length == 0) {
 				var galleryID = JQ('#Form_EditForm_FacebookAlbumID').val();
 				var msg = "<p>No images were found for gallery with facebook id '"+galleryID+"'</p>";
@@ -146,10 +226,9 @@ JQ(document).ready(function() {
 			} else {
 				JQ('#facebookGalleryPreview').html(htmlPreview);
 				statusMessage('Images found');
-
+				JQ('#fbImportButton').removeClass('hidden');
 			}
 
-			JQ('#fbImportButton').removeClass('hidden');
 
 			JQ('#Form_EditForm_FacebookAlbumID').removeClass('loading');
 
