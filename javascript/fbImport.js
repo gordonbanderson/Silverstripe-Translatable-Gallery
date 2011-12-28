@@ -2,241 +2,193 @@ JQ = jQuery.noConflict();
 
 
 function loadAlbumListing() {
-	JQ('#Form_EditForm_FacebookAlbumID').addClass('loading');
-		JQ('#fbImportButton').addClass('hidden');
+    JQ('#Form_EditForm_FacebookAlbumID').addClass('loading');
+    JQ('#fbImportButton').addClass('hidden');
 
-		JQ('#facebookGalleryPreview').html("<p>Loading Albums</p>");
-		JQ('#facebookGalleryPreview').addClass('loading');
+    JQ('#facebookGalleryPreview').html("<p>Loading Albums</p>");
+    JQ('#facebookGalleryPreview').addClass('loading');
 
-	//ListAlbums
-	JQ.ajax({
-	  type: "GET",
-	  //async: true,
-	  url: 'fbimport/ListAlbums/',
-	  dataType: 'json',
-	  //data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
-	  success: function(albums){
-		JQ('#facebookGalleryPreview').html("<p>Albums loaded</p>");
-	  	JQ('#facebookGalleryPreview').removeClass('loading');
-	  	var html = '<ul class="albumListing">';
-	  	for (var i = albums['fql'].length - 1; i >= 0; i--) {
-	  		
-	  		var album = albums['fql'][i];
-	  		html = html + "<li><h2 aid='"+album['aid']+"'>"+album['name']+"</h2></li>";
+    //ListAlbums
+    JQ.ajax({
+      type: "GET",
+      //async: true,
+      url: 'fbimport/ListAlbums/',
+      dataType: 'json',
+      //data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
+      success: function(albums){
+        JQ('#facebookGalleryPreview').html("<p>Albums loaded</p>");
+        JQ('#facebookGalleryPreview').removeClass('loading');
+        var html = '<ul class="albumListing">';
+        for (var i = albums['fql'].length - 1; i >= 0; i--) {
+            
+            var album = albums['fql'][i];
+            html = html + "<li><h2 aid='"+album['aid']+"'>"+album['name']+"</h2></li>";
 
-	  	};
+        };
 
-	  	html = html + "</ul>";
-		JQ('#facebookGalleryPreview').html(html);
+        html = html + "</ul>";
+        JQ('#facebookGalleryPreview').html(html);
 
 
 
-	  },
-	  error: function(jqXHR, textStatus, errorThrown) {
-	  	errorMessage("An error occurred: '$textStatus+' ' + $errorThrown'");
-	  }
-	});
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+        errorMessage("An error occurred: '$textStatus+' ' + $errorThrown'");
+    }
+});
 }
 
 
 // import one image at a time and recurse once the image has finished loading
 function importImage(gallery_id, position) {
-	var previewImage = JQ('#facebookGalleryPreview').find('div:nth-child('+position+')');
+    var previewImage = JQ('#facebookGalleryPreview').find('div:nth-child('+position+')');
 
-	if (JQ('#facebookGalleryPreview div').length == 0) {
-		// we are done
-	} else {
-		//alert(previewImage);
-	var pid = JQ(previewImage).attr('id').split('_')[1];
-	var caption = JQ(previewImage).find('.caption').html();
-	var src_big = JQ(previewImage).find('img').attr('src_big');
+    if (JQ('#facebookGalleryPreview div').length == 0) {
+        // we are done
+    } else {
+        //alert(previewImage);
+        var pid = JQ(previewImage).attr('id').split('_')[1];
+        var caption = JQ(previewImage).find('.caption').html();
+        var src_big = JQ(previewImage).find('img').attr('src_big');
 
-	//alert(pid+","+caption+","+src_big);
+        JQ(previewImage).addClass("processing");
+        
+        JQ.ajax({
+          type: "POST",
+          //async: true,
+          url: 'fbimport/ImportPicture/'+gallery_id,
+          dataType: 'json',
+          data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
+          success: function(data){
 
-	//alert(previewImage.html());
+            var id = data['id'];
+            var treeTitle = data['treeTitle'];
+            var hasChildren = data['hasChildren'];
+            var clazz = data['class'];
+            var parentID = data['parentID'];
 
-	//JQ(previewImage).html("Importing");
-	JQ(previewImage).addClass("processing");
+            var tree = $('sitetree');
+            var newNode = tree.createTreeNode(id, treeTitle, clazz+hasChildren);
+            var node = tree.getTreeNodeByIdx(parentID);
+            if(!node) {
+                node = tree.getTreeNodeByIdx(0);
+            }
+            node.open();
+            node.appendTreeNode(newNode);
+            
+            JQ(previewImage).addClass('processing');
 
-
-
-
-	
-
-
-
-
-	JQ.ajax({
-	  type: "POST",
-	  //async: true,
-	  url: 'fbimport/ImportPicture/'+gallery_id,
-	  dataType: 'json',
-	  data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
-	  success: function(data){
-
-	  	var id = data['id'];
-	  	var treeTitle = data['treeTitle'];
-	  	var hasChildren = data['hasChildren'];
-	  	var clazz = data['class'];
-	  	var parentID = data['parentID'];
-
-			var tree = $('sitetree');
-			var newNode = tree.createTreeNode(id, treeTitle, clazz+hasChildren);
-			var node = tree.getTreeNodeByIdx(parentID);
-			if(!node) {
-				node = tree.getTreeNodeByIdx(0);
-			}
-			node.open();
-			node.appendTreeNode(newNode);
-	  	
-	    JQ(previewImage).addClass('processing');
-
-	    JQ(previewImage).remove();
-	    		importImage(gallery_id, 1);
-
-	    	    //alert( "Data Saved: " + msg );
-
-	  }
-	});
-	}
+            JQ(previewImage).remove();
+            importImage(gallery_id, 1);
+        }
+    });
+}
 
 }
 
 JQ(document).ready(function() {
-	alert('doc ready fb import js');
+    alert('doc ready fb import js');
 
-	JQ('#fbImportButton').addClass('hidden');
+    JQ('#fbImportButton').addClass('hidden');
 
-	JQ('.facebookLoadAlbumsButton').livequery('click', function() {
-		JQ('.facebookLoadAlbumsButton').addClass('hidden');
-		loadAlbumListing();
-	});
-
-
-	JQ('.albumListing li h2').livequery('click', function() {
-		var aid = JQ(this).attr('aid');
-		JQ('#Form_EditForm_FacebookAlbumID').val(aid);
-		JQ('#Form_EditForm_FacebookAlbumID').change();
-		JQ('.facebookLoadAlbumsButton').removeClass('hidden');
-
-	});
+    JQ('.facebookLoadAlbumsButton').livequery('click', function() {
+        JQ('.facebookLoadAlbumsButton').addClass('hidden');
+        loadAlbumListing();
+    });
 
 
-	
+    JQ('.albumListing li h2').livequery('click', function() {
+        var aid = JQ(this).attr('aid');
+        JQ('#Form_EditForm_FacebookAlbumID').val(aid);
+        JQ('#Form_EditForm_FacebookAlbumID').change();
+        JQ('.facebookLoadAlbumsButton').removeClass('hidden');
+
+    });
 
 
-	JQ('.facebookImportButton').livequery('click', function() {
-		var gallery_id = JQ(this).attr('id').split('_')[1];
-
-		importImage(gallery_id, 1);
-	
-		//var jsonData = JQ(this).attr('fbGalleryInfo');
-		
-
-/*
-		ctr = 0;
-		previewImages.each(function(i) { 
-    		var pid = JQ(this).attr('id').split('_')[1];
-    		var caption = JQ(this).find('.caption').html();
-    		var src_big = JQ(this).find('img').attr('src_big');
+    
 
 
-    		JQ.ajax({
-			  type: "POST",
-			  //async: true,
-	    	  url: 'fbimport/ImportPicture/'+gallery_id,
-	    	  dataType: 'json',
-			  data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
-			  success: function(msg){
-			  	
-			    alert( "Data Saved: " + msg );
-			    JQ(this).addClass('processing');
+    JQ('.facebookImportButton').livequery('click', function() {
+        var gallery_id = JQ(this).attr('id').split('_')[1];
 
-			    JQ(this).html('Blah');
-			  }
-			});
+        importImage(gallery_id, 1);
+        
+        
+    });
 
-			ctr = ctr + 1;
+    // Triggered when the facebook ID textbox is edited.
+    // 1. Check value is valid
+    // 2. Load preview from facebook
+    // 3. Show import button
+    JQ('#Form_EditForm_FacebookAlbumID').livequery('change', function() {
 
+        JQ('#fbImportButton').addClass('hidden');
+        JQ('.facebookLoadAlbumsButton').removeClass('hidden');
 
+        JQ('#Form_EditForm_FacebookAlbumID').addClass('loading');
+        JQ('#fbImportButton').addClass('hidden');
 
-}		);
-*/
-		
-	});
+        JQ('#facebookGalleryPreview').html("<p>Preview images will appear here</p>");
+        JQ('#facebookGalleryPreview').addClass('loading');
+        
+        var urlOrAlbumID = JQ(this).val();
 
-	// Triggered when the facebook ID textbox is edited.
-	// 1. Check value is valid
-	// 2. Load preview from facebook
-	// 3. Show import button
-	JQ('#Form_EditForm_FacebookAlbumID').livequery('change', function() {
+        var htmlPreview = '';
 
-		JQ('#fbImportButton').addClass('hidden');
-		JQ('.facebookLoadAlbumsButton').removeClass('hidden');
+        JQ.getJSON('/fbimport/PreviewAlbum?AlbumIDOrURL='+urlOrAlbumID, function(data) {
+            //alert(data['title']);
 
-		JQ('#Form_EditForm_FacebookAlbumID').addClass('loading');
-		JQ('#fbImportButton').addClass('hidden');
-
-		JQ('#facebookGalleryPreview').html("<p>Preview images will appear here</p>");
-		JQ('#facebookGalleryPreview').addClass('loading');
-		
-		var urlOrAlbumID = JQ(this).val();
-
-		var htmlPreview = '';
-
-		JQ.getJSON('/fbimport/PreviewAlbum?AlbumIDOrURL='+urlOrAlbumID, function(data) {
-		//alert(data['title']);
-
-			statusMessage('Album found - loading preview images');
+            statusMessage('Album found - loading preview images');
 
 
-			for (var i = data['images'].length - 1; i >= 0; i--) {
-				var image = data['images'][i];
+            for (var i = data['images'].length - 1; i >= 0; i--) {
+                var image = data['images'][i];
 
-				for (var key in image) {
-				//	alert(key);
-				//	alert(image['key']);
-				}
+                for (var key in image) {
+                    //  alert(key);
+                    //  alert(image['key']);
+                }
 
-				htmlPreview = htmlPreview + '<div class="fbPreviewImg" id="fbpic_'+image['pid']+'"><img src="';
-				htmlPreview = htmlPreview + image['src_small']+'" ';
-				//htmlPreview - htmlPreview + '" alt="'+image['src_big']+'/>" '
+                htmlPreview = htmlPreview + '<div class="fbPreviewImg" id="fbpic_'+image['pid']+'"><img src="';
+                htmlPreview = htmlPreview + image['src_small']+'" ';
+                //htmlPreview - htmlPreview + '" alt="'+image['src_big']+'/>" '
 
-				htmlPreview = htmlPreview + 'src_big="'+image['src_big'];
-				htmlPreview = htmlPreview + '"/>';
-				htmlPreview = htmlPreview + '<div class="caption">' +image['caption'];
-				htmlPreview = htmlPreview + "</div></div>\n\n";
+                htmlPreview = htmlPreview + 'src_big="'+image['src_big'];
+                htmlPreview = htmlPreview + '"/>';
+                htmlPreview = htmlPreview + '<div class="caption">' +image['caption'];
+                htmlPreview = htmlPreview + "</div></div>\n\n";
 
-				//alert(image['caption']);
-			};
+                //alert(image['caption']);
+            };
 
-			/*
-https://www.facebook.com/media/set/?set=a.2592468685530.132592.1069035736&type=1
+            /*
+            https://www.facebook.com/media/set/?set=a.2592468685530.132592.1069035736&type=1
 
-2592468685530_132592
-1069035736_132592
-			*/
+            2592468685530_132592
+            1069035736_132592
+            */
 
-			if (data['images'].length == 0) {
-				var galleryID = JQ('#Form_EditForm_FacebookAlbumID').val();
-				var msg = "<p>No images were found for gallery with facebook id '"+galleryID+"'</p>";
-				JQ('#facebookGalleryPreview').html(msg);
-				errorMessage('No images found');
+            if (data['images'].length == 0) {
+                var galleryID = JQ('#Form_EditForm_FacebookAlbumID').val();
+                var msg = "<p>No images were found for gallery with facebook id '"+galleryID+"'</p>";
+                JQ('#facebookGalleryPreview').html(msg);
+                errorMessage('No images found');
 
-			} else {
-				JQ('#facebookGalleryPreview').html(htmlPreview);
-				statusMessage('Images found');
-				JQ('#fbImportButton').removeClass('hidden');
-			}
-
-
-			JQ('#Form_EditForm_FacebookAlbumID').removeClass('loading');
+            } else {
+                JQ('#facebookGalleryPreview').html(htmlPreview);
+                statusMessage('Images found');
+                JQ('#fbImportButton').removeClass('hidden');
+            }
 
 
-			JQ('#Form_EditForm_Content_ifr').contents().find('#tinymce').html('<p>'+data['description']+'</p>');  	
-		  });
-		
-	});
+            JQ('#Form_EditForm_FacebookAlbumID').removeClass('loading');
+
+
+            JQ('#Form_EditForm_Content_ifr').contents().find('#tinymce').html('<p>'+data['description']+'</p>');    
+        });
+        
+    });
 
 });
 
