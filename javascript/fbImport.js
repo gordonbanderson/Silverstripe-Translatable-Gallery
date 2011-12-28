@@ -15,7 +15,7 @@ function loadAlbumListing() {
       url: 'fbimport/ListAlbums/',
       dataType: 'json',
       //data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
-      success: function(albums){
+      success: function(albums) {
         JQ('#facebookGalleryPreview').html("<p>Albums loaded</p>");
         JQ('#facebookGalleryPreview').removeClass('loading');
         var html = '<ul class="albumListing">';
@@ -28,6 +28,8 @@ function loadAlbumListing() {
 
         html = html + "</ul>";
         JQ('#facebookGalleryPreview').html(html);
+
+        JQ('.facebookLoadAlbumsButton').val('Reload Albums');
 
 
 
