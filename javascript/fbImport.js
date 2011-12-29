@@ -99,11 +99,66 @@ JQ(document).ready(function() {
     });
 
 
+    // click on an album listing to load the pictures
     JQ('.albumListing li h2').livequery('click', function() {
         var aid = JQ(this).attr('aid');
         JQ('#Form_EditForm_FacebookAlbumID').val(aid);
         JQ('#Form_EditForm_FacebookAlbumID').change();
         JQ('.facebookLoadAlbumsButton').removeClass('hidden');
+
+    });
+
+
+    
+
+    JQ('.publishAllPicsButton').livequery('click', function() {
+        JQ(this).addClass('loading');
+        statusMessage('Publishing photographs for this gallery');
+        var gallery_id = JQ(this).attr('id').split('_')[1];
+
+    
+    JQ.ajax({
+      type: "POST",
+      //async: true,
+      url: 'fbimport/PublishAllPhotos/'+gallery_id,
+      dataType: 'json',
+      //data: "pid="+pid+"&src_big="+src_big+"&caption="+caption,
+      success: function(data) {
+        var st = $('sitetree');
+        for (var i = data.length - 1; i >= 0; i--) {
+            var photo = data[i];
+            $('Form_EditForm').updateStatus(photo['status']);
+            if (photo['stageURL'] || photo['liveURL']) {
+                st.setNodeTitle(photo['id'], photo['title']);
+            } else {
+                var node = st.getTreeNodeByIdx(photo['id']);
+                if(node && node.parentTreeNode) {
+                    node.parentTreeNode.removeTreeNode(node);
+                }
+
+                JQ('Form_EditForm').reloadIfSetTo(photo['id']);    
+            }
+
+            $('Form_EditForm').elements.StageURLSegment.value = photo['stageURL'];
+            $('Form_EditForm').elements.LiveURLSegment.value = photo['liveURL'];
+            $('Form_EditForm').notify('PagePublished', $('Form_EditForm').elements.ID.value);
+            
+        };
+            JQ('.publishAllPicsButton').removeClass('loading');
+
+
+
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert('error');
+            JQ('.publishAllPicsButton').removeClass('loading');
+
+            errorMessage("An error occurred: "+textStatus+' ' + errorThrown);
+        }
+    });
+
+        
+
 
     });
 
