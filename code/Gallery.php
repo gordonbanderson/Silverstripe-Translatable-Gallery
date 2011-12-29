@@ -66,6 +66,11 @@ class Gallery extends Page {
 
 
 
+
+
+
+
+
    function getFirstPhotograph() { 
       $result = null;
       //DEBUGLOG("Get first child T1");
@@ -103,6 +108,8 @@ class Gallery extends Page {
     $fields->addFieldToTab('Root.Content.BulkUpload', new TextField('BulkCopyright', 'Bulk Copyright'));
     $fields->addFieldToTab('Root.Content.BulkUpload', new TextField('BulkLicense', 'Bulk License'));
 
+
+ 
     $manager = new PhotographDataObjectManager(
       $this, // Controller
       'AllChildren', // Source name
@@ -118,7 +125,17 @@ class Gallery extends Page {
       // Join clause
     );
 
-        $fields->addFieldToTab("Root.Content.AllImages",$manager);
+    $fields->addFieldToTab("Root.Content.AllImages",$manager);
+
+    $l3 = new LiteralField(
+      $name = 'literalyfield2',
+      $content = '<input id="publishAllPhotosButton_'.$this->ID.'" type="button" class="publishAllPicsButton action" value="Publish All Photos"/>
+      '
+    );
+
+    $fields->addFieldToTab('Root.Content.AllImages', $l3);
+
+
 
 
 
@@ -340,7 +357,7 @@ class Gallery_Controller extends Page_Controller {
    *
    * @var array
    */
-  public static $allowed_actions = array ('PreviewAlbum', 'ImportPicture', 'ListAlbums');
+  public static $allowed_actions = array ('PublishAllPhotos', 'PreviewAlbum', 'ImportPicture', 'ListAlbums');
 
   public function init() {
     parent::init();
@@ -360,6 +377,77 @@ class Gallery_Controller extends Page_Controller {
     public function ColumnLayout() {
       return 'layout1col';
     }
+
+
+    /* Publish all the photographs in a gallery */
+    function PublishAllPhotos($request) {
+      error_log(print_r($request,1));
+      $unesc_id = Director::urlParam('ID');
+      $id = Convert::raw2sql($unesc_id);
+      error_log("ID of gallery:*".$id."*");
+      error_log("Publising all photos");
+      Versioned::reading_stage('Stage');
+      $gallery = DataObject::get_by_id('Gallery', $id);
+      error_log("GALLERY:".$gallery);
+
+      $publishedIDS = array();
+       
+      foreach($gallery->Children() as $photo){
+        error_log("Publishing ".$photo);
+        $photo->Publish('Stage', 'Live');
+        //$this->tellBrowserAboutPublishedPhoto($photo);
+        $JS_title = Convert::raw2js($photo->TreeTitle());
+
+        $JS_stageURL = $photo->IsDeletedFromStage ? '' : Convert::raw2js($photo->AbsoluteLink());
+        $liveRecord = Versioned::get_one_by_stage('SiteTree', 'Live', "\"SiteTree\".\"ID\" = $photo->ID");
+
+        $JS_liveURL = $liveRecord ? Convert::raw2js($liveRecord->AbsoluteLink()) : '';
+
+        $image = array();
+        $image['id'] = $photo->ID;
+        $image['title'] = $JS_title;
+        $image['stageURL'] = $JS_stageURL;
+        $image['liveURL'] = $JS_liveURL;
+        $image['Status'] = $photo->Status;
+
+
+        array_push($publishedIDS, $image);
+      }
+
+      Versioned::reading_stage('Live');
+
+
+      echo json_encode($publishedIDS);  
+      die;        
+    } 
+    
+    
+    
+    function tellBrowserAboutPublishedPhoto($page) {
+      $JS_title = Convert::raw2js($page->TreeTitle());
+
+      $JS_stageURL = $page->IsDeletedFromStage ? '' : Convert::raw2js($page->AbsoluteLink());
+      $liveRecord = Versioned::get_one_by_stage('SiteTree', 'Live', "\"SiteTree\".\"ID\" = $page->ID");
+
+      $JS_liveURL = $liveRecord ? Convert::raw2js($liveRecord->AbsoluteLink()) : '';
+
+      //FIXMEFormResponse::add($this->getActionUpdateJS($page));
+      FormResponse::update_status($page->Status);
+      
+      if($JS_stageURL || $JS_liveURL) {
+        FormResponse::add("\$('sitetree').setNodeTitle($page->ID, '$JS_title');");
+      } else {
+        FormResponse::add("var node = $('sitetree').getTreeNodeByIdx('$page->ID');");
+        FormResponse::add("if(node && node.parentTreeNode) node.parentTreeNode.removeTreeNode(node);");
+        FormResponse::add("$('Form_EditForm').reloadIfSetTo($page->ID);");
+      }
+      
+      FormResponse::add("$('Form_EditForm').elements.StageURLSegment.value = '$JS_stageURL';");
+      FormResponse::add("$('Form_EditForm').elements.LiveURLSegment.value = '$JS_liveURL';");
+      FormResponse::add("$('Form_EditForm').notify('PagePublished', $('Form_EditForm').elements.ID.value);");
+
+      // dont respond just yet
+    }  
 
 
     //FIXME - add permissions checks
@@ -443,8 +531,7 @@ class Gallery_Controller extends Page_Controller {
 
         echo json_encode($result);
 
-        error_log("RESULT");
-        error_log(print_r($result,1));
+        
         die;
     }
 
