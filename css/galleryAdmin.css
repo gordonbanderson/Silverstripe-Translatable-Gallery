@@ -15,11 +15,15 @@
     display: none;
 }
 
-#fbImportButton, #facebookLoadAlbumsButton {
+#fbImportButton, #facebookLoadAlbumsButton, .publishAllPicsButton {
     font-size: 120%;
     font-weight: bold;
     padding: 4px;
     margin-right: 20px;
+}
+
+.publishAllPicsButton {
+    margin-right: 0px;
 }
 
 .albumListing li {
