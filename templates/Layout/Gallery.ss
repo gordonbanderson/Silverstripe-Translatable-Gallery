@@ -7,16 +7,11 @@ $Content
 <% control Children %>
 <li class="oriented{$Photo.Orientation}">
 <a id="photo_$ID" rel="prettyPhoto[pp_gal]" title="$Caption" href="$Link" class="highslide">
-<% control Photo %>
-<% control SetHeight(140) %>
-<img alt="$Top.Title" title="$Top.Title" src="$URL"  style="height:{$Height}px;width:{$Width}px;"/>
+<img alt="$Title" title="$Title" <% control Photo %><% control SetHeight(140) %>
+src="$URL"  style="height:{$Height}px;width:{$Width}px;"/>
 <% end_control %>
 <% end_control %>
 </a>
-
-
-
-
 </li>
 <% end_control %>
 </ul>
@@ -40,7 +35,7 @@ JQ(document).ready(function(){
     	{
     		theme: 'facebook',
     		showTitle: true,
-    		opacity: 0.9,
+    		opacity: 0.7,
     		social_tools: ''
     	}
 	);
