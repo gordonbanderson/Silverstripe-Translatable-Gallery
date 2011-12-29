@@ -6,5 +6,5 @@ Director::addRules(100, array('DataObjectManager_Controller/$Action/Photograph' 
 Director::addRules(100, array('fbimport/$Action/$ID' => 'Gallery_Controller'));
 
 
-Object::add_extension('CMSMain', 'GalleryCMSActionDecorator');
+//Object::add_extension('CMSMain', 'GalleryCMSActionDecorator');
 ?>
