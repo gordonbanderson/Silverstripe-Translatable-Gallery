@@ -254,7 +254,6 @@ class PhotographDataObjectManager_Popup extends FileDataObjectManager_Popup
 	{
 			parent::__construct($controller, $name, $fields, $validator, $readonly, $dataObject);
 			Requirements::css('dataobject_manager/css/imagedataobject_manager.css');
-			Requirements::javascript('silverstripe-links/javascript/photograph_popup.js');
 	}
 
 
