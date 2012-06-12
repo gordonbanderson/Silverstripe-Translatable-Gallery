@@ -1,6 +1,6 @@
 <?php
 
-require_once "facebook.php";
+//require_once "facebook.php";
 
 class Gallery extends Page {
   static $db = array (
@@ -135,57 +135,47 @@ class Gallery extends Page {
 
     $fields->addFieldToTab('Root.Content.AllImages', $l3);
 
+//  Requirements::javascript('silverstripe-translatable-gallery/javascript/fbImport.js');
+  Requirements::css('wot-translatable-gallery/css/galleryAdmin.css');
 
-
-
-
-
-
-
-
-
-
-  Requirements::javascript('silverstripe-translatable-gallery/javascript/fbImport.js');
-  Requirements::css('silverstripe-translatable-gallery/css/galleryAdmin.css');
 
 
   if (self::CanUseFacebook()) {
-    $facebook = new Facebook(array(
+  /*   $facebook = new Facebook(array(
     'appId'  => Gallery::getFacebookApplicationID(),
     'secret' => Gallery::getFacebookApplicationSecret(),
-    'cookie' => true, // enable optional cookie support
+    'cookie' => false, // enable optional cookie support
   ));
+*/
 
-  $content = '<p>
+  $content = '
+  <script>
+   window.fbAsyncInit = function() {
+    };
+    </script>
+
+
+   <div id="fb-auth" class="action">Login</div>
+       
+       
+        <div id="user-info"></div>
+
+ <script type="text/javascript" src="/wot-translatable-gallery/javascript/fbImport.js"></script>
+
+  <p>
     You can import your own and photos  you can see into a gallery.  You will be prompted to authenticate against Facebook prior to importing.
     </p><p>';
- 
+    $l1 = new LiteralField(
+      $name = 'literallyfield1',
+      $content
+); 
 
-  if ($facebook->getSession())  {
-    $content .= "You are logged in to facebook and can access friends pictures. &nbsp;";
-    $content .= '<a href="';
-    $content .= $facebook->getLogoutUrl();
-    $content .= '">Logout</a><br/>';
-  } else {
-      $content .= "Login in to facebook using the following link:";
-      $content .= '<a href="';
-      $content .= $facebook->getLoginUrl();
-      $content .= '">Login</a><br/>';
-  }
-
-  $content .= "</p>";
+    $fields->addFieldToTab('Root.Content.Facebook', $l1);
 
 
-       
- $l =new LiteralField (
-    $name = "literalfield",
-    $content
- );
+  $fields->addFieldToTab('Root.Content.Facebook', new TextField('FacebookAlbumID', 'Facebook Album ID'));
 
-    $fields->addFieldToTab('Root.Content.Facebook', $l);
-    
-    if ($facebook->getSession()) {
-      $fields->addFieldToTab('Root.Content.Facebook', new TextField('FacebookAlbumID', 'Facebook Album ID'));
+  $fields->addFieldToTab('Root.Content.Facebook', new TextField('FacebookCoverPicID', 'Facebook Cover Picture ID'));
 
     $l2 = new LiteralField(
       $name = 'literalyfield2',
@@ -199,7 +189,7 @@ class Gallery extends Page {
 
     $fields->addFieldToTab('Root.Content.Facebook', $l2);
     }
-  }
+  
 
 
     /*
@@ -320,19 +310,7 @@ JS
 
 
 
-    function getCMSActions(){
-         
-        $actions = parent::getCMSActions();
-         
-        $Action = new FormAction(
-               "doPublishAllPhotos",
-               "Publish All Photos"
-            );
-        $actions->push($Action);
-         
-        return $actions;
-    }
-
+    
     
    
 }
@@ -361,17 +339,15 @@ class Gallery_Controller extends Page_Controller {
 
   public function init() {
     parent::init();
-
+/*
     $this->facebook = new Facebook(array(
       'appId'  => '200187276738808',
       'secret' => '6b5b0e791580c88f4a9ea527d44fdd78',
-      'cookie' => true, // enable optional cookie support
+      'cookie' => false, // enable optional cookie support
     ));
-
-    // Note: you should use SS template require tags inside your templates 
-    // instead of putting Requirements calls here.  However these are 
-    // included so that our older themes still work
-    #Requirements::themedCSS('gallery.css');
+*/
+    error_log("GALLERY INIT REQUEST");
+    error_log(print_r($_REQUEST,1));
   }
 
     public function ColumnLayout() {
@@ -452,6 +428,9 @@ class Gallery_Controller extends Page_Controller {
 
     //FIXME - add permissions checks
     public function ListAlbums($request) {
+      $user = $this->facebook->getUser();
+      error_log("LIST ALBUMS: USER - ".$user);
+      //FIXME - if this is blank then appropriate error
         $fql    =   "SELECT aid, cover_pid, name, description FROM album where owner=".Gallery::getFacebookUserID(); //  WHERE aid='1069035736_130940'";
           $param  =   array(
            'method'    => 'fql.query',
@@ -538,6 +517,7 @@ class Gallery_Controller extends Page_Controller {
 
     /* Import a single picture */
     function ImportPicture($request) {
+  error_log(print_r($request,1));
       /*
       $p = new Page();
       $p->Title = 'This is a test';
@@ -557,7 +537,11 @@ class Gallery_Controller extends Page_Controller {
         //error_log(print_r($request,1));
 error_log("T2");
         $gid = Convert::raw2sql($request->param('ID'));
+        $isCover = Convert::raw2sql($_POST['cover']);
 error_log("T3 - gid = ".$gid);
+error_log("COVER:".$isCover);
+
+  
 
         // we want to deal with staging only
         Versioned::reading_stage('Stage');
@@ -609,6 +593,27 @@ error_log("T4");
         $image->Filename = "$pid.JPG";
         $image->ParentID = $uploadFolder->ID;
         $image->write();
+
+        // add a cover pic if we do not have one
+        if ($isCover == 'true') {
+          error_log("Setting main cover image");
+          error_log("THIS:".$this);
+          if (!$gallery->PromotionImageID) {
+
+            $ci = new CustomImage();
+            $ci->Filename = "$pid.JPG";
+            $ci->ParentID = $uploadFolder->ID;
+            $ci->write();
+            error_log("Promotion id being set to ".$ci->ID);
+          //  $gallery->PromotionImage = $ci;
+          //  $gallery->write();
+            $sql = "update Page set PromotionImageID = ".$ci->ID." where ID=".$gallery->ID;
+           error_log($sql);
+DB::query($sql);
+          } else {
+            error_log("Promotion image previously set");
+          }
+        }
 
 
 error_log("T11 - creating photograph");
