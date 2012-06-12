@@ -241,7 +241,6 @@ function loadAlbumListing() {
         //http://developers.facebook.com/docs/reference/fql/user/
         //FIXME remove hardwiring
 
-        alert('import T1');
         var fql = 'SELECT aid, cover_pid, name,created, description FROM album where owner=438372179510501 order by name desc';
         var query = FB.Data.query(fql, response.id);
 
@@ -279,8 +278,7 @@ function loadAlbumListing() {
 
                 //http://developers.facebook.com/docs/reference/fql/user/
         
-                var fql = "SELECT aid,pid,src_big,src_big_width,src_big_height from photo WHERE pid IN (" + pids + ")";
-        alert('import T2 '+fql);
+                var fql = "SELECT aid,pid,src_big,src_big_width,src_big_height,created from photo WHERE pid IN (" + pids + ") order by created";
         
                 var query = FB.Data.query(fql, response.id);
                 query.wait(function(rows) {
@@ -319,12 +317,18 @@ function importImage(gallery_id, position) {
         statusMessage('Import complete');
     } else {
         //////alert(previewImage);
-        var pid = JQ(previewImage).attr('id').split('_')[1];
+        // ID of form fbpic_438372179510501_1875646 or fbpic_438372179510501
+        var splits = JQ(previewImage).attr('id').split('_');
+        splits.shift();
+        var pid = splits.join('_');
+
         var caption = JQ(previewImage).find('.caption').html();
         var src_big = JQ(previewImage).find('img').attr('src_big');
         var cover_pid = JQ(previewImage).find('img').attr('cpid');
 
         var isCover = (pid == cover_pid);
+
+        alert('Importing image '+pid+' with src '+src_big);
 
         //////alert("Comparing "+pid+" = "+cover_pid);
         JQ(previewImage).addClass("processing");
@@ -336,6 +340,7 @@ function importImage(gallery_id, position) {
             dataType: 'json',
             data: "pid=" + pid + "&src_big=" + src_big + "&caption=" + caption + "&cover=" + isCover,
             success: function(data) {
+
 
 
                 var id = data['id'];
