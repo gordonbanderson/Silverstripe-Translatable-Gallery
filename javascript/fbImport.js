@@ -62,7 +62,11 @@ function initFacebook() {
     if (typeof(FB) != "undefined") {
         //alert('fb is defined T1');
 
-        FB.getLoginStatus(function(response) {
+        // silverstripe does not reload JS files, so use jquery live to bind to an arbitrary ID, and each
+        // time the gallery admin is invoked, recheck the login against FB
+        JQ('#fb-auth').livequery(function() {
+
+            FB.getLoginStatus(function(response) {
             //alert('got fb login status');
 
             //alert(response.status);
@@ -83,6 +87,9 @@ function initFacebook() {
                 // the user isn't even logged in to Facebook.
             }
         }, true); // force round trip
+        });
+
+        
     } else {
         //alert('type of FB undefined');
     }
