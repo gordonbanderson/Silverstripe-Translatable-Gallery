@@ -149,19 +149,9 @@ class Gallery extends Page {
 */
 
   $content = '
-  <script>
-   window.fbAsyncInit = function() {
-    };
-    </script>
-
-
    <div id="fb-auth" class="action">Login</div>
-       
-       
         <div id="user-info"></div>
-
  <script type="text/javascript" src="/wot-translatable-gallery/javascript/fbImport.js"></script>
-
   <p>
     You can import your own and photos  you can see into a gallery.  You will be prompted to authenticate against Facebook prior to importing.
     </p><p>';
@@ -518,6 +508,8 @@ class Gallery_Controller extends Page_Controller {
     /* Import a single picture */
     function ImportPicture($request) {
   error_log(print_r($request,1));
+
+    $current_locale = Translatable::get_current_locale();
       /*
       $p = new Page();
       $p->Title = 'This is a test';
@@ -549,6 +541,7 @@ error_log("COVER:".$isCover);
         Versioned::reading_stage('Live');
 
         error_log("Gallery:".$gallery->ID);
+        error_log("Gallery locale:".$gallery->Locale);
 
         error_log("T3a");
         //$albumID = Convert::raw2sql($request['AlbumIDOrURL']);
@@ -636,12 +629,13 @@ error_log("T11 - creating photograph");
 
         $pic->PhotoID = $image->ID;
         $pic->ParentID = $gid;
-        $pic->Locale = Translatable::get_current_locale();
+        $pic->Locale = $gallery->Locale; //Translatable::get_current_locale();
 
 
         error_log("Photograph: PhotoID:".$image->ID);
         error_log("Photo parent id:".$pic->ParentID);
-        
+        error_log("Photograph LOCALE".$pic->Locale);
+
         $pic->write();
 
         // prime the Javascript in order to write to the tree
