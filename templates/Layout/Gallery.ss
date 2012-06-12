@@ -3,9 +3,9 @@
 
 $Content
 
-<ul class="nobullets gallery">
+<ul class="thumbnails">
 <% control Children %>
-<li class="oriented{$Photo.Orientation}">
+<li class="oriented{$Photo.Orientation} slide">
 <a id="photo_$ID" rel="prettyPhoto[pp_gal]" title="$Caption" href="$Link" class="highslide">
 <img alt="$Title" title="$Title" <% control Photo %><% control SetHeight(140) %>
 src="$URL"  style="height:{$Height}px;width:{$Width}px;"/>
@@ -19,8 +19,10 @@ src="$URL"  style="height:{$Height}px;width:{$Width}px;"/>
 
 
 
-<link rel="stylesheet" href="/silverstripe-translatable-gallery/css/prettyPhoto.css" type="text/css" media="screen" charset="utf-8" />
-<script src="/silverstripe-translatable-gallery/javascript/jquery.prettyPhoto.min.js" type="text/javascript" charset="utf-8"></script>
+
+
+<link rel="stylesheet" href="/wot-translatable-gallery/css/prettyPhoto.css" type="text/css" media="screen" charset="utf-8" />
+<script src="/wot-translatable-gallery/javascript/jquery.prettyPhoto.min.js" type="text/javascript" charset="utf-8"></script>
 
 
 
