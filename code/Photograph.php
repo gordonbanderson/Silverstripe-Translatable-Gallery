@@ -96,6 +96,45 @@ JS;
   }
 
 
+  /*
+  function canDelete() { 
+    return Permission::check('CMS_ACCESS_CMSMain'); 
+  }
+
+  // using the dataobject manager only deletes the stage photograph - we need to delete the live one also
+  function  onAfterDelete() {
+    error_log("PHOTO ON AFTER DELETE");
+    error_log("ID:".$this->ID);
+
+    // find a live copy if it exists and delete it
+    $sql = 'delete from Photograph_Live where ID='.$this->ID;
+    error_log($sql);
+
+  }
+  */
+
+
+    /*
+  Touch one of the Link objects to bump the cache when an object is deleted
+
+  FIXME Find a 'touch' equivalent, as current method requires 2 database writes to ensure a correct update
+  */
+  function onAfterDelete() {
+    parent::onAfterDelete();
+    $l = DataObject::get_one('Photograph');
+
+    // unless a field is changed, write does not update the updatedAt field which is used for caching
+    $temptitle = $l->Title;
+    $l->Title = 'random text';
+    $l->write();
+    $l->Title = $temptitle;
+    $l->write();
+  }
+
+
+
+
+
   function getRequirementsForPopup() {
     Requirements::javascript('silverstripe-links/javascript/photograph_popup.js');
   }
