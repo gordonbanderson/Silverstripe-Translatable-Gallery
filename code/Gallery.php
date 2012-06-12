@@ -357,8 +357,14 @@ class Gallery_Controller extends Page_Controller {
       error_log("GALLERY:".$gallery);
 
       $publishedIDS = array();
+
+      // change locale to that of the gallery
+      i18n::set_locale($gallery->Locale);
+      Translatable::set_current_locale($gallery->Locale);
+
        
       foreach($gallery->Children() as $photo){
+        error_log("CHILD:".$photo);
         error_log("Publishing ".$photo);
         $photo->Publish('Stage', 'Live');
         //$this->tellBrowserAboutPublishedPhoto($photo);
@@ -507,9 +513,8 @@ class Gallery_Controller extends Page_Controller {
 
     /* Import a single picture */
     function ImportPicture($request) {
-  error_log(print_r($request,1));
+    error_log(print_r($request,1));
 
-    $current_locale = Translatable::get_current_locale();
       /*
       $p = new Page();
       $p->Title = 'This is a test';
@@ -587,7 +592,7 @@ error_log("T4");
         $image->ParentID = $uploadFolder->ID;
         $image->write();
 
-        // add a cover pic if we do not have one
+      /*  // add a cover pic if we do not have one
         if ($isCover == 'true') {
           error_log("Setting main cover image");
           error_log("THIS:".$this);
@@ -607,6 +612,8 @@ DB::query($sql);
             error_log("Promotion image previously set");
           }
         }
+
+        */
 
 
 error_log("T11 - creating photograph");
