@@ -6,6 +6,13 @@ Install DataObjectManager and Uploadify as prerequisites.
 
 Move this repository to your root folder and then go to the standard /dev/build page.  You can now add a Gallery when using Create mode, and this gallery has a bulk upload facility.
 
+### Facebook Configuration
+In order to import from facebook one needs to create a facebook application
+1) Go to developers.facebook.com
+2) Click Apps in the navigation bar
+
+
+
 ## Known Bugs
 The left hand menu currently does not refresh after bulk upload.  The work around is to refresh the browser page (/admin/cms)
 
